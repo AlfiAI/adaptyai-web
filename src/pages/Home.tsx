@@ -1,9 +1,8 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import Card from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 
 const Home = () => {
   return (
