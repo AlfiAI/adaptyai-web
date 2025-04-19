@@ -36,7 +36,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime 
     email: '',
     company: '',
     phone: '',
-    topic: ''
+    topic: '_default'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -68,6 +68,14 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime 
       return;
     }
     
+    if (formData.topic === '_default') {
+      toast({
+        title: "Please select a topic",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -89,7 +97,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime 
           email: '',
           company: '',
           phone: '',
-          topic: ''
+          topic: '_default'
         });
         setIsSuccess(false);
       }, 2000);

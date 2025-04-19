@@ -40,7 +40,8 @@ const FormSelect: React.FC<FormSelectProps> = ({
           <SelectValue placeholder="Select an option" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Select {label.toLowerCase()}</SelectItem>
+          {/* Replace the empty string value with a meaningful default */}
+          <SelectItem value="_default">Select {label.toLowerCase()}</SelectItem>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
