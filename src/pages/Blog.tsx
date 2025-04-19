@@ -19,7 +19,7 @@ const blogPosts = [
   {
     id: 2,
     title: 'Ethical Considerations in AI Development',
-    excerpt: 'As AI systems become more powerful, it's crucial that we address the ethical implications of their deployment...',
+    excerpt: "As AI systems become more powerful, it's crucial that we address the ethical implications of their deployment...",
     date: 'April 10, 2025',
     author: 'James Wilson',
     category: 'Ethics',
