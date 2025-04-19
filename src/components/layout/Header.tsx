@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { scrollToSection } from '@/utils/scrollUtils';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,7 +20,22 @@ const Header = () => {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    
+    // Handle hash navigation when route changes
+    if (location.hash) {
+      const sectionId = location.hash.slice(1);
+      setTimeout(() => {
+        scrollToSection(sectionId);
+      }, 100);
+    }
   }, [location]);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      scrollToSection(sectionId);
+    }
+  };
 
   return (
     <header 
@@ -41,15 +57,27 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/" className="text-white hover:glow-text transition-all">
+          <a 
+            href="/#home" 
+            className="text-white hover:glow-text transition-all"
+            onClick={(e) => handleNavClick(e, 'home')}
+          >
             Home
-          </Link>
-          <Link to="/#about" className="text-white hover:glow-text transition-all">
+          </a>
+          <a 
+            href="/#about" 
+            className="text-white hover:glow-text transition-all"
+            onClick={(e) => handleNavClick(e, 'about')}
+          >
             About
-          </Link>
-          <Link to="/#services" className="text-white hover:glow-text transition-all">
+          </a>
+          <a 
+            href="/#services" 
+            className="text-white hover:glow-text transition-all"
+            onClick={(e) => handleNavClick(e, 'services')}
+          >
             What We Do
-          </Link>
+          </a>
           <Link to="/blog" className="text-white hover:glow-text transition-all">
             Blog
           </Link>
@@ -91,15 +119,27 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-black/90 backdrop-blur-lg">
           <div className="container py-4 flex flex-col space-y-4">
-            <Link to="/" className="text-white hover:glow-text transition-all">
+            <a 
+              href="/#home" 
+              className="text-white hover:glow-text transition-all"
+              onClick={(e) => handleNavClick(e, 'home')}
+            >
               Home
-            </Link>
-            <Link to="/#about" className="text-white hover:glow-text transition-all">
+            </a>
+            <a 
+              href="/#about" 
+              className="text-white hover:glow-text transition-all"
+              onClick={(e) => handleNavClick(e, 'about')}
+            >
               About
-            </Link>
-            <Link to="/#services" className="text-white hover:glow-text transition-all">
+            </a>
+            <a 
+              href="/#services" 
+              className="text-white hover:glow-text transition-all"
+              onClick={(e) => handleNavClick(e, 'services')}
+            >
               What We Do
-            </Link>
+            </a>
             <Link to="/blog" className="text-white hover:glow-text transition-all">
               Blog
             </Link>

@@ -1,19 +1,31 @@
 
-// This is a placeholder for OpenRouter API integration
+const OPENROUTER_API_KEY = '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';
 
-// In a production environment, we would use a proper setup with API keys
-// const OPENROUTER_API_KEY = 'your-api-key-here';
+export const sendMessageToOpenRouter = async (messages: any[]) => {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://adaptyai.agency',
+        'X-Title': 'Adapty AI L.E.X. Assistant'
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-3-haiku',
+        messages: messages,
+        max_tokens: 1000
+      })
+    });
 
-export const openrouterSetup = {
-  status: 'placeholder',
-  message: 'OpenRouter API placeholder - replace with actual implementation'
-};
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.status}`);
+    }
 
-// Example function to call the OpenRouter API
-export const generateResponse = async (prompt: string) => {
-  console.log(`Placeholder for generating AI response to: ${prompt}`);
-  return {
-    message: "This is a placeholder response from the OpenRouter API. Replace with actual API call implementation.",
-    model: "placeholder-model"
-  };
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error sending message to OpenRouter:', error);
+    throw error;
+  }
 };

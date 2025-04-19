@@ -1,32 +1,30 @@
 
-// This is a placeholder for the Firebase SDK setup
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
 
-// In a production environment, we would initialize Firebase with your config
-// const firebaseConfig = {
-//   apiKey: "YOUR_API_KEY",
-//   authDomain: "your-app.firebaseapp.com",
-//   projectId: "your-project-id",
-//   storageBucket: "your-app.appspot.com",
-//   messagingSenderId: "your-messaging-sender-id",
-//   appId: "your-app-id"
-// };
-
-// export const app = initializeApp(firebaseConfig);
-// export const db = getFirestore(app);
-// export const auth = getAuth(app);
-
-export const firebaseSetup = {
-  status: 'placeholder',
-  message: 'Firebase SDK placeholder - replace with actual implementation'
+const firebaseConfig = {
+  apiKey: "AIzaSyBEQTeBrm5HQnV99YyZx0W8a068FA0Hb4U",
+  authDomain: "adapty-ai-agency.firebaseapp.com",
+  projectId: "adapty-ai-agency",
+  storageBucket: "adapty-ai-agency.firebasestorage.app",
+  messagingSenderId: "242986017069",
+  appId: "1:242986017069:web:dcd64c9a793538fdc5f3a4",
+  measurementId: "G-SKPB2HNE3P"
 };
 
-// Example Firestore utility functions
-export const fetchData = async (collection: string) => {
-  console.log(`Placeholder for fetching data from ${collection}`);
-  return [];
-};
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-export const addDocument = async (collection: string, data: any) => {
-  console.log(`Placeholder for adding document to ${collection}`, data);
-  return { id: 'placeholder-id' };
-};
+// Initialize Analytics
+let analytics;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
+
+export { analytics };
+
+export default app;
