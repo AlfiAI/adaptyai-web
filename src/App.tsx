@@ -11,6 +11,8 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Schedule from "./pages/Schedule";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+import Podcast from "./pages/Podcast";
 
 // Layout Components
 import Header from "./components/layout/Header";
@@ -33,6 +35,8 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/schedule" element={<Schedule />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/podcast" element={<Podcast />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
