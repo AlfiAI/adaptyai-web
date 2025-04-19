@@ -1,8 +1,9 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import Card from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 
 const timeSlots = [
   '9:00 AM', '10:00 AM', '11:00 AM', 
