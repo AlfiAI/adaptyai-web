@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, Trash } from 'lucide-react';
+import { Loader2, Edit, Trash, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,18 +17,18 @@ import {
 } from '@/components/ui/form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { submitBlogPost, getBlogPosts, deleteBlogPost } from '@/services/firebaseService';
+import { submitBlogPost, getBlogPosts, deleteBlogPost, uploadImage, FirestoreBlogPost } from '@/services/firebaseService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MarkdownPreview } from '@/components/admin/MarkdownPreview';
 
 // Schema for blog post validation
 const blogPostSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
-  summary: z.string().min(10, { message: "Summary must be at least 10 characters" }),
-  category: z.string().min(1, { message: "Category is required" }),
+  excerpt: z.string().min(10, { message: "Excerpt must be at least 10 characters" }),
+  tags: z.string().min(1, { message: "At least one tag is required" }),
   author: z.string().min(1, { message: "Author is required" }),
-  content: z.string().min(50, { message: "Content must be at least 50 characters" }),
-  coverImageURL: z.string().url({ message: "Please enter a valid image URL" }),
+  body: z.string().min(50, { message: "Content must be at least 50 characters" }),
+  cover_image_url: z.string().url({ message: "Please enter a valid image URL" }).or(z.string().length(0)),
 });
 
 type BlogPostFormValues = z.infer<typeof blogPostSchema>;
@@ -36,6 +36,8 @@ type BlogPostFormValues = z.infer<typeof blogPostSchema>;
 export const AdminBlogManager = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -44,15 +46,15 @@ export const AdminBlogManager = () => {
     resolver: zodResolver(blogPostSchema),
     defaultValues: {
       title: '',
-      summary: '',
-      category: '',
+      excerpt: '',
+      tags: '',
       author: '',
-      content: '',
-      coverImageURL: '',
+      body: '',
+      cover_image_url: '',
     },
   });
 
-  // Query to fetch blog posts - updated to use appropriate queryFn format
+  // Query to fetch blog posts
   const { data: blogPosts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: async () => await getBlogPosts(),
@@ -60,19 +62,35 @@ export const AdminBlogManager = () => {
 
   // Mutation to submit a blog post
   const submitMutation = useMutation({
-    mutationFn: (data: BlogPostFormValues & { slug: string; date: Date }) => {
-      // Explicitly create the object with all required properties
-      const postData = {
+    mutationFn: async (data: BlogPostFormValues) => {
+      let coverImageUrl = data.cover_image_url;
+      
+      // If a file is selected, upload it first
+      if (selectedFile) {
+        setUploading(true);
+        try {
+          coverImageUrl = await uploadImage(selectedFile, 'blogs/covers');
+        } catch (error) {
+          console.error('Error uploading cover image:', error);
+          throw error;
+        } finally {
+          setUploading(false);
+        }
+      }
+      
+      // Prepare tags array from comma-separated string
+      const tags = data.tags.split(',').map(tag => tag.trim());
+      
+      // Submit the post with the image URL
+      return submitBlogPost({
         title: data.title,
-        summary: data.summary,
-        content: data.content,
-        category: data.category,
+        excerpt: data.excerpt,
+        body: data.body,
         author: data.author,
-        coverImageURL: data.coverImageURL,
-        slug: data.slug,
-        date: data.date
-      };
-      return submitBlogPost(postData);
+        tags: tags,
+        cover_image_url: coverImageUrl,
+        published_at: new Date()
+      });
     },
     onSuccess: () => {
       toast({
@@ -80,6 +98,7 @@ export const AdminBlogManager = () => {
         description: "Your blog post has been published",
       });
       form.reset();
+      setSelectedFile(null);
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
     },
     onError: (error) => {
@@ -91,35 +110,58 @@ export const AdminBlogManager = () => {
     },
   });
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .trim();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Maximum file size is 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+    }
   };
 
   const onSubmit = (data: BlogPostFormValues) => {
-    const slug = generateSlug(data.title);
-    const postData = {
-      ...data,
-      slug,
-      date: new Date(),
-    };
+    if (!data.cover_image_url && !selectedFile) {
+      toast({
+        title: "Cover image required",
+        description: "Please provide a cover image URL or upload an image",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    submitMutation.mutate(postData);
+    submitMutation.mutate(data);
   };
 
-  const handleEditPost = (post: any) => {
+  const handleEditPost = (post: FirestoreBlogPost) => {
     setEditingPost(post.id);
     form.reset({
       title: post.title,
-      summary: post.excerpt || post.summary,
-      category: post.category,
+      excerpt: post.excerpt,
+      tags: post.tags.join(', '),
       author: post.author,
-      content: post.content || '',
-      coverImageURL: post.image || post.coverImageURL,
+      body: post.body,
+      cover_image_url: post.cover_image_url,
     });
+    setSelectedFile(null);
   };
 
   const handleDeletePost = (postId: string) => {
@@ -174,10 +216,10 @@ export const AdminBlogManager = () => {
                 
                 <FormField
                   control={form.control}
-                  name="summary"
+                  name="excerpt"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Summary</FormLabel>
+                      <FormLabel>Excerpt</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Enter a brief summary of the post" 
@@ -193,10 +235,10 @@ export const AdminBlogManager = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="category"
+                    name="tags"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel>Tags (comma separated)</FormLabel>
                         <FormControl>
                           <Input placeholder="e.g. Technology, AI, Business" {...field} />
                         </FormControl>
@@ -222,16 +264,44 @@ export const AdminBlogManager = () => {
                 
                 <FormField
                   control={form.control}
-                  name="coverImageURL"
+                  name="cover_image_url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cover Image URL</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="https://example.com/image.jpg" 
-                          {...field} 
-                        />
-                      </FormControl>
+                      <FormLabel>Cover Image</FormLabel>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div className="col-span-2">
+                          <FormControl>
+                            <Input 
+                              placeholder="https://example.com/image.jpg" 
+                              {...field} 
+                            />
+                          </FormControl>
+                        </div>
+                        <div>
+                          <div className="relative">
+                            <Input
+                              type="file"
+                              id="coverImageUpload"
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              onChange={handleFileChange}
+                              accept="image/*"
+                            />
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              className="w-full flex items-center justify-center"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      {selectedFile && (
+                        <p className="text-sm mt-1 text-emerald-500">
+                          Selected: {selectedFile.name}
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -239,7 +309,7 @@ export const AdminBlogManager = () => {
                 
                 <FormField
                   control={form.control}
-                  name="content"
+                  name="body"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex justify-between items-center">
@@ -279,6 +349,7 @@ export const AdminBlogManager = () => {
                       onClick={() => {
                         setEditingPost(null);
                         form.reset();
+                        setSelectedFile(null);
                       }}
                     >
                       Cancel
@@ -287,12 +358,12 @@ export const AdminBlogManager = () => {
                   <Button 
                     type="submit"
                     className="bg-adapty-aqua hover:bg-adapty-aqua/80"
-                    disabled={submitMutation.isPending}
+                    disabled={submitMutation.isPending || uploading}
                   >
-                    {submitMutation.isPending ? (
+                    {(submitMutation.isPending || uploading) ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Publishing...
+                        {uploading ? 'Uploading...' : 'Publishing...'}
                       </>
                     ) : (
                       'Publish Post'
@@ -338,7 +409,7 @@ export const AdminBlogManager = () => {
                       </div>
                     </div>
                     <div className="text-sm text-gray-400 mt-1 flex justify-between">
-                      <span>Category: {post.category}</span>
+                      <span>Tags: {post.tags.join(', ')}</span>
                       <span>By: {post.author}</span>
                     </div>
                   </Card>

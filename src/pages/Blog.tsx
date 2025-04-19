@@ -82,10 +82,10 @@ const Blog: React.FC = () => {
             id: post.id || '',
             title: post.title || 'Untitled Post',
             excerpt: post.excerpt || 'No description available',
-            date: post.date || new Date().toISOString(),
+            date: post.published_at || new Date().toISOString(),
             author: post.author || 'Anonymous',
-            category: post.category || 'Uncategorized',
-            image: post.image || '/placeholder.svg'
+            category: post.tags?.length > 0 ? post.tags[0] : 'Uncategorized',
+            image: post.cover_image_url || '/placeholder.svg'
           }));
           setBlogPosts(formattedPosts);
         }

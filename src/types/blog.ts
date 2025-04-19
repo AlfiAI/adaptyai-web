@@ -10,3 +10,14 @@ export interface BlogPost {
 }
 
 export type DateFormatFunction = (date: string | { seconds: number }) => string;
+
+export interface PodcastEpisode {
+  id: string;
+  title: string;
+  description: string;
+  audioLink: string;
+  guestName: string;
+  date: string;
+  duration: string;
+  coverImageURL: string;
+}

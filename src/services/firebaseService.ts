@@ -1,6 +1,7 @@
 
 import { collection, addDoc, getDocs, query, orderBy, limit as firestoreLimit, Timestamp, doc, deleteDoc, updateDoc, where, DocumentData } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 
 // Contact form submission
 export const submitContactForm = async (formData: {
@@ -46,70 +47,66 @@ export const submitScheduleBooking = async (bookingData: {
   }
 };
 
+// Upload image to Firebase Storage
+export const uploadImage = async (file: File, path: string): Promise<string> => {
+  try {
+    const storageRef = ref(storage, `${path}/${file.name}`);
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+};
+
+// Upload audio to Firebase Storage
+export const uploadAudio = async (file: File): Promise<string> => {
+  try {
+    const storageRef = ref(storage, `podcasts/audio/${file.name}`);
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading audio:', error);
+    throw error;
+  }
+};
+
 // Interface for blog posts from Firestore
 export interface FirestoreBlogPost {
   id: string;
   title: string;
   excerpt: string;
-  content?: string;
-  date: any; // Could be Timestamp or date string
+  body: string; // Markdown or rich text content
   author: string;
-  category: string;
-  image: string;
-  slug?: string;
-  tags?: string[];
-  published?: boolean;
+  published_at: any; // Could be Timestamp or date string
+  tags: string[];
+  cover_image_url: string;
 }
 
 // Submit blog post to Firestore
 export const submitBlogPost = async (postData: {
   title: string;
-  summary: string;
-  content: string;
-  category: string;
+  excerpt: string;
+  body: string;
   author: string;
-  coverImageURL: string;
-  slug: string;
-  date: Date;
+  tags: string[];
+  cover_image_url: string;
+  published_at: Date;
 }) => {
   try {
-    // Check if a post with the same slug already exists
-    const slugQuery = query(
-      collection(db, 'posts'),
-      where('slug', '==', postData.slug)
-    );
-    
-    const slugQuerySnapshot = await getDocs(slugQuery);
-    
-    if (!slugQuerySnapshot.empty) {
-      // If we're updating an existing post
-      const docId = slugQuerySnapshot.docs[0].id;
-      await updateDoc(doc(db, 'posts', docId), {
-        title: postData.title,
-        excerpt: postData.summary,
-        content: postData.content,
-        category: postData.category,
-        author: postData.author,
-        image: postData.coverImageURL,
-        updatedAt: Timestamp.now()
-      });
-      return docId;
-    } else {
-      // Creating a new post
-      const docRef = await addDoc(collection(db, 'posts'), {
-        title: postData.title,
-        excerpt: postData.summary,
-        content: postData.content,
-        category: postData.category,
-        author: postData.author,
-        image: postData.coverImageURL,
-        slug: postData.slug,
-        createdAt: Timestamp.now(),
-        date: Timestamp.fromDate(postData.date),
-        published: true
-      });
-      return docRef.id;
-    }
+    const docRef = await addDoc(collection(db, 'blogs'), {
+      title: postData.title,
+      excerpt: postData.excerpt,
+      body: postData.body,
+      author: postData.author,
+      tags: postData.tags,
+      cover_image_url: postData.cover_image_url,
+      published_at: Timestamp.fromDate(postData.published_at || new Date()),
+      created_at: Timestamp.now(),
+    });
+    return docRef.id;
   } catch (error) {
     console.error('Error submitting blog post:', error);
     throw error;
@@ -119,7 +116,7 @@ export const submitBlogPost = async (postData: {
 // Delete blog post from Firestore
 export const deleteBlogPost = async (postId: string) => {
   try {
-    await deleteDoc(doc(db, 'posts', postId));
+    await deleteDoc(doc(db, 'blogs', postId));
     return true;
   } catch (error) {
     console.error('Error deleting blog post:', error);
@@ -127,12 +124,12 @@ export const deleteBlogPost = async (postId: string) => {
   }
 };
 
-// Get blog posts with all content
+// Get blog posts
 export const getBlogPosts = async (): Promise<FirestoreBlogPost[]> => {
   try {
     const q = query(
-      collection(db, 'posts'),
-      orderBy('createdAt', 'desc'),
+      collection(db, 'blogs'),
+      orderBy('published_at', 'desc'),
       firestoreLimit(100)
     );
     
@@ -149,14 +146,11 @@ export const getBlogPosts = async (): Promise<FirestoreBlogPost[]> => {
         id: doc.id,
         title: data.title || 'Untitled Post',
         excerpt: data.excerpt || 'No description available',
-        content: data.content || '',
-        date: data.date || data.createdAt || Timestamp.now(),
+        body: data.body || '',
         author: data.author || 'Anonymous',
-        category: data.category || 'Uncategorized',
-        image: data.image || '/placeholder.svg',
-        slug: data.slug || doc.id,
+        published_at: data.published_at || data.created_at || Timestamp.now(),
         tags: data.tags || [],
-        published: data.published !== false // Default to true if not specified
+        cover_image_url: data.cover_image_url || '/placeholder.svg'
       } as FirestoreBlogPost;
     });
     
@@ -170,36 +164,35 @@ export const getBlogPosts = async (): Promise<FirestoreBlogPost[]> => {
 // Interface for podcast episodes from Firestore
 export interface FirestorePodcast {
   id: string;
-  episodeTitle: string;
-  guestName: string;
-  topic: string;
+  title: string;
   description: string;
-  date: any; // Could be Timestamp or date string
-  audioLink: string;
-  coverImageURL: string;
+  audio_url: string;
+  guest_name?: string;
+  duration: string;
+  published_at: any; // Could be Timestamp or date string
+  cover_image_url: string;
 }
 
 // Submit podcast to Firestore
 export const submitPodcast = async (podcastData: {
-  episodeTitle: string;
-  guestName: string;
-  topic: string;
+  title: string;
   description: string;
-  audioLink: string;
-  coverImageURL: string;
-  date: Date;
+  audio_url: string;
+  guest_name?: string;
+  duration: string;
+  cover_image_url: string;
+  published_at: Date;
 }) => {
   try {
     const docRef = await addDoc(collection(db, 'podcasts'), {
-      episodeTitle: podcastData.episodeTitle,
-      guestName: podcastData.guestName,
-      topic: podcastData.topic,
+      title: podcastData.title,
       description: podcastData.description,
-      audioLink: podcastData.audioLink,
-      coverImageURL: podcastData.coverImageURL,
-      createdAt: Timestamp.now(),
-      date: Timestamp.fromDate(podcastData.date),
-      published: true
+      audio_url: podcastData.audio_url,
+      guest_name: podcastData.guest_name || '',
+      duration: podcastData.duration,
+      cover_image_url: podcastData.cover_image_url,
+      published_at: Timestamp.fromDate(podcastData.published_at || new Date()),
+      created_at: Timestamp.now()
     });
     return docRef.id;
   } catch (error) {
@@ -224,7 +217,7 @@ export const getPodcasts = async (): Promise<FirestorePodcast[]> => {
   try {
     const q = query(
       collection(db, 'podcasts'),
-      orderBy('createdAt', 'desc'),
+      orderBy('published_at', 'desc'),
       firestoreLimit(100)
     );
     
@@ -239,13 +232,13 @@ export const getPodcasts = async (): Promise<FirestorePodcast[]> => {
       const data = doc.data();
       return {
         id: doc.id,
-        episodeTitle: data.episodeTitle || 'Untitled Episode',
-        guestName: data.guestName || 'Anonymous',
-        topic: data.topic || 'Uncategorized',
+        title: data.title || 'Untitled Episode',
         description: data.description || 'No description available',
-        date: data.date || data.createdAt || Timestamp.now(),
-        audioLink: data.audioLink || '',
-        coverImageURL: data.coverImageURL || '/placeholder.svg'
+        audio_url: data.audio_url || '',
+        guest_name: data.guest_name || '',
+        duration: data.duration || '00:00',
+        published_at: data.published_at || data.created_at || Timestamp.now(),
+        cover_image_url: data.cover_image_url || '/placeholder.svg'
       } as FirestorePodcast;
     });
     

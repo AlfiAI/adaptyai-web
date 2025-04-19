@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
 import { getPodcasts } from '@/services/firebaseService';
@@ -14,34 +16,47 @@ import LexIntegration from '@/components/blog/LexIntegration';
 const Podcast = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('latest');
+  const navigate = useNavigate();
 
-  // Query to fetch podcasts - updated to use appropriate queryFn format
+  // Query to fetch podcasts
   const { data: podcasts, isLoading, error } = useQuery({
     queryKey: ['podcasts'],
     queryFn: async () => await getPodcasts(),
   });
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Couldn't load podcasts",
-        description: "Using placeholder content instead.",
-        variant: "destructive"
-      });
-    }
-  }, [error, toast]);
+  if (error) {
+    toast({
+      title: "Couldn't load podcasts",
+      description: "Using placeholder content instead.",
+      variant: "destructive"
+    });
+  }
 
-  // Group podcasts by topic
-  const podcastsByTopic = podcasts?.reduce((acc: Record<string, any[]>, podcast) => {
-    const topic = podcast.topic || 'Uncategorized';
-    if (!acc[topic]) {
-      acc[topic] = [];
+  // Prepare data for rendering
+  const formatDate = (timestamp: any) => {
+    if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
+      return new Date(timestamp.seconds * 1000).toLocaleDateString();
     }
-    acc[topic].push(podcast);
+    return 'Unknown date';
+  };
+
+  // Group podcasts by guest (if available)
+  const podcastsByGuest = podcasts?.reduce((acc: Record<string, any[]>, podcast) => {
+    const guestName = podcast.guest_name || 'Other Episodes';
+    if (!acc[guestName]) {
+      acc[guestName] = [];
+    }
+    acc[guestName].push({
+      ...podcast,
+      formattedDate: formatDate(podcast.published_at)
+    });
     return acc;
   }, {}) || {};
 
-  const topics = Object.keys(podcastsByTopic);
+  const guests = Object.keys(podcastsByGuest).filter(guest => guest !== 'Other Episodes');
+  if (podcastsByGuest['Other Episodes']) {
+    guests.push('Other Episodes');
+  }
 
   return (
     <PageContainer>
@@ -58,16 +73,25 @@ const Podcast = () => {
             Join us as we explore the cutting edge of AI technology and its real-world applications 
             with industry experts, thought leaders, and innovative practitioners.
           </p>
+          <div className="mt-6">
+            <Button 
+              variant="outline" 
+              className="border-adapty-aqua text-adapty-aqua hover:bg-adapty-aqua/10"
+              onClick={() => navigate('/admin')}
+            >
+              Admin Dashboard
+            </Button>
+          </div>
         </motion.div>
 
         {/* Podcast Episode List */}
         <div className="mb-12">
           <Tabs defaultValue="latest" onValueChange={setActiveTab}>
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-8 overflow-x-auto py-2">
               <TabsList>
                 <TabsTrigger value="latest">Latest Episodes</TabsTrigger>
-                {topics.map(topic => (
-                  <TabsTrigger key={topic} value={topic}>{topic}</TabsTrigger>
+                {guests.map(guest => (
+                  <TabsTrigger key={guest} value={guest}>{guest}</TabsTrigger>
                 ))}
               </TabsList>
             </div>
@@ -82,7 +106,19 @@ const Podcast = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {podcasts && podcasts.length > 0 ? (
                       podcasts.slice(0, 6).map(episode => (
-                        <PodcastEpisodeCard key={episode.id} episode={episode} />
+                        <PodcastEpisodeCard 
+                          key={episode.id} 
+                          episode={{
+                            id: episode.id,
+                            title: episode.title,
+                            description: episode.description,
+                            audioLink: episode.audio_url,
+                            guestName: episode.guest_name || '',
+                            date: formatDate(episode.published_at),
+                            duration: episode.duration,
+                            coverImageURL: episode.cover_image_url
+                          }} 
+                        />
                       ))
                     ) : (
                       <div className="col-span-3 text-center py-12 text-gray-400">
@@ -92,11 +128,23 @@ const Podcast = () => {
                   </div>
                 </TabsContent>
 
-                {topics.map(topic => (
-                  <TabsContent key={topic} value={topic}>
+                {guests.map(guest => (
+                  <TabsContent key={guest} value={guest}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {podcastsByTopic[topic].map(episode => (
-                        <PodcastEpisodeCard key={episode.id} episode={episode} />
+                      {podcastsByGuest[guest].map(episode => (
+                        <PodcastEpisodeCard 
+                          key={episode.id} 
+                          episode={{
+                            id: episode.id,
+                            title: episode.title,
+                            description: episode.description,
+                            audioLink: episode.audio_url,
+                            guestName: episode.guest_name || '',
+                            date: episode.formattedDate,
+                            duration: episode.duration,
+                            coverImageURL: episode.cover_image_url
+                          }} 
+                        />
                       ))}
                     </div>
                   </TabsContent>
