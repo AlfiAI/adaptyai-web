@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
@@ -75,7 +76,7 @@ const Blog: React.FC = () => {
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        const posts = await getBlogPosts(postsToShow);
+        const posts = await getBlogPosts();
         if (posts && posts.length > 0) {
           const formattedPosts = posts.map(post => ({
             id: post.id || '',

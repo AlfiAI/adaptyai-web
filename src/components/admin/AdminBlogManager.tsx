@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -60,7 +61,18 @@ export const AdminBlogManager = () => {
   // Mutation to submit a blog post
   const submitMutation = useMutation({
     mutationFn: (data: BlogPostFormValues & { slug: string; date: Date }) => {
-      return submitBlogPost(data);
+      // Explicitly create the object with all required properties
+      const postData = {
+        title: data.title,
+        summary: data.summary,
+        content: data.content,
+        category: data.category,
+        author: data.author,
+        coverImageURL: data.coverImageURL,
+        slug: data.slug,
+        date: data.date
+      };
+      return submitBlogPost(postData);
     },
     onSuccess: () => {
       toast({

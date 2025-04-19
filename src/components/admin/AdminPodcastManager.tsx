@@ -61,7 +61,17 @@ export const AdminPodcastManager = () => {
   // Mutation to submit a podcast
   const submitMutation = useMutation({
     mutationFn: (data: PodcastFormValues & { date: Date }) => {
-      return submitPodcast(data);
+      // Explicitly create the object with all required properties
+      const podcastData = {
+        episodeTitle: data.episodeTitle,
+        guestName: data.guestName,
+        topic: data.topic,
+        description: data.description,
+        audioLink: data.audioLink,
+        coverImageURL: data.coverImageURL,
+        date: data.date
+      };
+      return submitPodcast(podcastData);
     },
     onSuccess: () => {
       toast({
