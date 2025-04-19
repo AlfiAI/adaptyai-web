@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
@@ -16,10 +15,10 @@ const Podcast = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('latest');
 
-  // Query to fetch podcasts
+  // Query to fetch podcasts - updated to use appropriate queryFn format
   const { data: podcasts, isLoading, error } = useQuery({
     queryKey: ['podcasts'],
-    queryFn: getPodcasts,
+    queryFn: async () => await getPodcasts(),
   });
 
   useEffect(() => {

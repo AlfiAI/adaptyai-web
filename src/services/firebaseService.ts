@@ -1,5 +1,5 @@
 
-import { collection, addDoc, getDocs, query, orderBy, limit, Timestamp, doc, deleteDoc, updateDoc, where, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, limit as firestoreLimit, Timestamp, doc, deleteDoc, updateDoc, where, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Contact form submission
@@ -128,12 +128,12 @@ export const deleteBlogPost = async (postId: string) => {
 };
 
 // Get blog posts with all content
-export const getBlogPosts = async (postsToLoad = 100): Promise<FirestoreBlogPost[]> => {
+export const getBlogPosts = async (): Promise<FirestoreBlogPost[]> => {
   try {
     const q = query(
       collection(db, 'posts'),
       orderBy('createdAt', 'desc'),
-      limit(postsToLoad)
+      firestoreLimit(100)
     );
     
     const querySnapshot = await getDocs(q);
@@ -220,12 +220,12 @@ export const deletePodcast = async (podcastId: string) => {
 };
 
 // Get podcasts from Firestore
-export const getPodcasts = async (limit = 100): Promise<FirestorePodcast[]> => {
+export const getPodcasts = async (): Promise<FirestorePodcast[]> => {
   try {
     const q = query(
       collection(db, 'podcasts'),
       orderBy('createdAt', 'desc'),
-      limit
+      firestoreLimit(100)
     );
     
     const querySnapshot = await getDocs(q);

@@ -52,15 +52,17 @@ export const AdminPodcastManager = () => {
     },
   });
 
-  // Query to fetch podcasts
+  // Query to fetch podcasts - updated to use appropriate queryFn format
   const { data: podcasts, isLoading } = useQuery({
     queryKey: ['podcasts'],
-    queryFn: getPodcasts,
+    queryFn: async () => await getPodcasts(),
   });
 
   // Mutation to submit a podcast
   const submitMutation = useMutation({
-    mutationFn: submitPodcast,
+    mutationFn: (data: PodcastFormValues & { date: Date }) => {
+      return submitPodcast(data);
+    },
     onSuccess: () => {
       toast({
         title: "Success!",

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -52,15 +51,17 @@ export const AdminBlogManager = () => {
     },
   });
 
-  // Query to fetch blog posts
+  // Query to fetch blog posts - updated to use appropriate queryFn format
   const { data: blogPosts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
-    queryFn: getBlogPosts,
+    queryFn: async () => await getBlogPosts(),
   });
 
   // Mutation to submit a blog post
   const submitMutation = useMutation({
-    mutationFn: submitBlogPost,
+    mutationFn: (data: BlogPostFormValues & { slug: string; date: Date }) => {
+      return submitBlogPost(data);
+    },
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -73,25 +74,6 @@ export const AdminBlogManager = () => {
       toast({
         title: "Error",
         description: "Failed to publish blog post: " + error,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Mutation to delete a blog post
-  const deleteMutation = useMutation({
-    mutationFn: deleteBlogPost,
-    onSuccess: () => {
-      toast({
-        title: "Success!",
-        description: "Blog post has been deleted",
-      });
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete blog post: " + error,
         variant: "destructive",
       });
     },
@@ -133,6 +115,25 @@ export const AdminBlogManager = () => {
       deleteMutation.mutate(postId);
     }
   };
+
+  // Mutation to delete a blog post
+  const deleteMutation = useMutation({
+    mutationFn: deleteBlogPost,
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Blog post has been deleted",
+      });
+      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete blog post: " + error,
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
     <div className="space-y-8">
