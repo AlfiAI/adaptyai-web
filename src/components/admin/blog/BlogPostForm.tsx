@@ -2,15 +2,15 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Upload, Loader2 } from 'lucide-react';
-import { MarkdownPreview } from '@/components/admin/MarkdownPreview';
 import { FirestoreBlogPost } from '@/services/firebase';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { BlogFormControls } from './form/BlogFormControls';
+import { BlogContentEditor } from './form/BlogContentEditor';
+import { BlogCoverUpload } from './form/BlogCoverUpload';
 
 export const blogPostSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -31,7 +31,6 @@ interface BlogPostFormProps {
 }
 
 export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: BlogPostFormProps) => {
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
@@ -151,110 +150,18 @@ export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: 
           />
         </div>
         
-        <FormField
-          control={form.control}
-          name="cover_image_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cover Image</FormLabel>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div className="col-span-2">
-                  <FormControl>
-                    <Input 
-                      placeholder="https://example.com/image.jpg" 
-                      {...field} 
-                    />
-                  </FormControl>
-                </div>
-                <div>
-                  <div className="relative">
-                    <Input
-                      type="file"
-                      id="coverImageUpload"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={handleFileChange}
-                      accept="image/*"
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              {selectedFile && (
-                <p className="text-sm mt-1 text-emerald-500">
-                  Selected: {selectedFile.name}
-                </p>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
+        <BlogCoverUpload
+          form={form}
+          selectedFile={selectedFile}
+          onFileChange={handleFileChange}
         />
         
-        <FormField
-          control={form.control}
-          name="body"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex justify-between items-center">
-                <FormLabel>Content (Markdown)</FormLabel>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowPreview(!showPreview)}
-                >
-                  {showPreview ? 'Edit Markdown' : 'Preview'}
-                </Button>
-              </div>
-              <FormControl>
-                {showPreview ? (
-                  <div className="border rounded-md p-4 min-h-[300px] bg-card">
-                    <MarkdownPreview markdown={field.value} />
-                  </div>
-                ) : (
-                  <Textarea 
-                    placeholder="Write your blog post content in Markdown..." 
-                    className="min-h-[300px]"
-                    {...field} 
-                  />
-                )}
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <BlogContentEditor form={form} />
         
-        <div className="flex justify-end space-x-2 pt-4">
-          {onCancel && (
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-          )}
-          <Button 
-            type="submit"
-            className="bg-adapty-aqua hover:bg-adapty-aqua/80"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              'Publish Post'
-            )}
-          </Button>
-        </div>
+        <BlogFormControls
+          isSubmitting={isSubmitting}
+          onCancel={onCancel}
+        />
       </form>
     </Form>
   );
