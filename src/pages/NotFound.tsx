@@ -1,26 +1,30 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import PageContainer from '@/components/layout/PageContainer';
+import Section from '@/components/layout/Section';
 
 const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
-      </div>
-    </div>
+    <PageContainer>
+      <Section className="min-h-[80vh] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-8xl font-bold glow-text mb-6">404</h1>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Page Not Found</h2>
+          <p className="text-gray-300 mb-8 max-w-xl mx-auto">
+            Sorry, the page you are looking for does not exist or has been moved.
+          </p>
+          <Button 
+            className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80"
+            asChild
+          >
+            <Link to="/">
+              Return to Home
+            </Link>
+          </Button>
+        </div>
+      </Section>
+    </PageContainer>
   );
 };
 
