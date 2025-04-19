@@ -1,7 +1,6 @@
-
 import { motion } from 'framer-motion';
 
-const BlogHeader = () => {
+const BlogHeader: React.FC = () => {
   return (
     <motion.div 
       className="text-center mb-16"

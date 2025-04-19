@@ -1,8 +1,8 @@
 
 import { Button } from '@/components/ui/button';
 
-const LexIntegration = () => {
-  const openLexAssistant = () => {
+const LexIntegration: React.FC = () => {
+  const openLexAssistant = (): void => {
     const lexButton = document.querySelector('button[data-lex-toggle]');
     if (lexButton instanceof HTMLElement) {
       lexButton.click();

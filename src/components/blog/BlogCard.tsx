@@ -1,25 +1,15 @@
-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-interface BlogPost {
-  id: string | number;
-  title: string;
-  excerpt: string;
-  date: string | { seconds: number };
-  author: string;
-  category: string;
-  image: string;
-}
+import { BlogPost, DateFormatFunction } from '@/types/blog';
 
 interface BlogCardProps {
   post: BlogPost;
-  formatDate: (date: string | { seconds: number }) => string;
+  formatDate: DateFormatFunction;
 }
 
-const BlogCard = ({ post, formatDate }: BlogCardProps) => {
+const BlogCard: React.FC<BlogCardProps> = ({ post, formatDate }) => {
   return (
     <motion.div variants={{
       hidden: { opacity: 0, y: 20 },

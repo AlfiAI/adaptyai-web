@@ -6,16 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import BlogHeader from '@/components/blog/BlogHeader';
 import BlogList from '@/components/blog/BlogList';
 import LexIntegration from '@/components/blog/LexIntegration';
-
-interface BlogPost {
-  id: string | number;
-  title: string;
-  excerpt: string;
-  date: string | { seconds: number };
-  author: string;
-  category: string;
-  image: string;
-}
+import { BlogPost, DateFormatFunction } from '@/types/blog';
 
 const placeholderPosts: BlogPost[] = [
   {
@@ -74,11 +65,11 @@ const placeholderPosts: BlogPost[] = [
   }
 ];
 
-const Blog = () => {
+const Blog: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(placeholderPosts);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [postsToShow, setPostsToShow] = useState(6);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [postsToShow, setPostsToShow] = useState<number>(6);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -129,7 +120,7 @@ const Blog = () => {
     }
   };
 
-  const formatDate = (date: string | { seconds: number }): string => {
+  const formatDate: DateFormatFunction = (date) => {
     if (typeof date === 'string') {
       return date;
     }

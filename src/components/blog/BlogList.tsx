@@ -1,28 +1,18 @@
-
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BlogCard from './BlogCard';
-
-interface BlogPost {
-  id: string | number;
-  title: string;
-  excerpt: string;
-  date: string | { seconds: number };
-  author: string;
-  category: string;
-  image: string;
-}
+import { BlogPost, DateFormatFunction } from '@/types/blog';
 
 interface BlogListProps {
   loading: boolean;
   blogPosts: BlogPost[];
   loadingMore: boolean;
   loadMorePosts: () => void;
-  formatDate: (date: string | { seconds: number }) => string;
+  formatDate: DateFormatFunction;
 }
 
-const BlogList = ({ loading, blogPosts, loadingMore, loadMorePosts, formatDate }: BlogListProps) => {
+const BlogList: React.FC<BlogListProps> = ({ loading, blogPosts, loadingMore, loadMorePosts, formatDate }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
