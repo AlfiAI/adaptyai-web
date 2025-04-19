@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -21,7 +20,6 @@ import { submitBlogPost, getBlogPosts, deleteBlogPost, uploadImage, FirestoreBlo
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MarkdownPreview } from '@/components/admin/MarkdownPreview';
 
-// Schema for blog post validation
 const blogPostSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
   excerpt: z.string().min(10, { message: "Excerpt must be at least 10 characters" }),
@@ -41,7 +39,6 @@ export const AdminBlogManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Set up form with validation
   const form = useForm<BlogPostFormValues>({
     resolver: zodResolver(blogPostSchema),
     defaultValues: {
@@ -54,18 +51,15 @@ export const AdminBlogManager = () => {
     },
   });
 
-  // Query to fetch blog posts
   const { data: blogPosts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: async () => await getBlogPosts(),
   });
 
-  // Mutation to submit a blog post
   const submitMutation = useMutation({
     mutationFn: async (data: BlogPostFormValues) => {
       let coverImageUrl = data.cover_image_url;
       
-      // If a file is selected, upload it first
       if (selectedFile) {
         setUploading(true);
         try {
@@ -78,10 +72,8 @@ export const AdminBlogManager = () => {
         }
       }
       
-      // Prepare tags array from comma-separated string
       const tags = data.tags.split(',').map(tag => tag.trim());
       
-      // Submit the post with the image URL
       return submitBlogPost({
         title: data.title,
         excerpt: data.excerpt,
@@ -114,7 +106,6 @@ export const AdminBlogManager = () => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Invalid file type",
@@ -124,7 +115,6 @@ export const AdminBlogManager = () => {
         return;
       }
       
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -170,7 +160,6 @@ export const AdminBlogManager = () => {
     }
   };
 
-  // Mutation to delete a blog post
   const deleteMutation = useMutation({
     mutationFn: deleteBlogPost,
     onSuccess: () => {
@@ -192,7 +181,6 @@ export const AdminBlogManager = () => {
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Blog Post Form */}
         <div className="w-full lg:w-1/2">
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">
@@ -375,7 +363,6 @@ export const AdminBlogManager = () => {
           </Card>
         </div>
         
-        {/* Blog Posts List */}
         <div className="w-full lg:w-1/2">
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">Published Blog Posts</h2>

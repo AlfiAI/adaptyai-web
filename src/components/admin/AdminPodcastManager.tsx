@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -21,7 +20,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { submitPodcast, getPodcasts, deletePodcast, uploadImage, uploadAudio, FirestorePodcast } from '@/services/firebaseService';
 import { PodcastPreview } from '@/components/admin/PodcastPreview';
 
-// Schema for podcast validation
 const podcastSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
   guest_name: z.string().optional(),
@@ -42,7 +40,6 @@ export const AdminPodcastManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Set up form with validation
   const form = useForm<PodcastFormValues>({
     resolver: zodResolver(podcastSchema),
     defaultValues: {
@@ -55,13 +52,11 @@ export const AdminPodcastManager = () => {
     },
   });
 
-  // Query to fetch podcasts
   const { data: podcasts, isLoading } = useQuery({
     queryKey: ['podcasts'],
     queryFn: async () => await getPodcasts(),
   });
 
-  // Mutation to submit a podcast
   const submitMutation = useMutation({
     mutationFn: async (data: PodcastFormValues) => {
       let coverImageUrl = data.cover_image_url;
@@ -69,22 +64,18 @@ export const AdminPodcastManager = () => {
       
       setUploading(true);
       try {
-        // Upload cover image if selected
         if (selectedCoverFile) {
           coverImageUrl = await uploadImage(selectedCoverFile, 'podcasts/covers');
         }
         
-        // Upload audio file if selected
         if (selectedAudioFile) {
           audioUrl = await uploadAudio(selectedAudioFile);
         }
         
-        // Validate that we have either a URL or an uploaded file for audio
         if (!audioUrl) {
           throw new Error("Audio file or URL is required");
         }
         
-        // Submit the podcast with the URLs
         return submitPodcast({
           title: data.title,
           description: data.description,
@@ -121,7 +112,6 @@ export const AdminPodcastManager = () => {
     },
   });
 
-  // Mutation to delete a podcast
   const deleteMutation = useMutation({
     mutationFn: deletePodcast,
     onSuccess: () => {
@@ -144,7 +134,6 @@ export const AdminPodcastManager = () => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Invalid file type",
@@ -154,7 +143,6 @@ export const AdminPodcastManager = () => {
         return;
       }
       
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -172,7 +160,6 @@ export const AdminPodcastManager = () => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Validate file type
       if (!file.type.startsWith('audio/')) {
         toast({
           title: "Invalid file type",
@@ -182,7 +169,6 @@ export const AdminPodcastManager = () => {
         return;
       }
       
-      // Validate file size (max 100MB)
       if (file.size > 100 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -194,14 +180,12 @@ export const AdminPodcastManager = () => {
       
       setSelectedAudioFile(file);
       
-      // Create object URL for preview
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
     }
   };
 
   const onSubmit = (data: PodcastFormValues) => {
-    // Validate that we have either a URL or an uploaded file for audio
     if (!data.audio_url && !selectedAudioFile) {
       toast({
         title: "Audio required",
@@ -211,7 +195,6 @@ export const AdminPodcastManager = () => {
       return;
     }
     
-    // Validate that we have either a URL or an uploaded file for cover image
     if (!data.cover_image_url && !selectedCoverFile) {
       toast({
         title: "Cover image required",
@@ -261,7 +244,6 @@ export const AdminPodcastManager = () => {
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Podcast Form */}
         <div className="w-full lg:w-1/2">
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">
@@ -345,7 +327,6 @@ export const AdminPodcastManager = () => {
                               {...field} 
                               onChange={(e) => {
                                 field.onChange(e);
-                                // Clear preview when audio link changes
                                 if (e.target.value !== field.value) {
                                   setPreviewUrl(null);
                                 }
@@ -480,7 +461,6 @@ export const AdminPodcastManager = () => {
           </Card>
         </div>
         
-        {/* Podcasts List */}
         <div className="w-full lg:w-1/2">
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">Published Podcast Episodes</h2>
