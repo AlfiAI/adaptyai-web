@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/services/firebaseService';
 import FormInput from '@/components/forms/FormInput';
+import FormTextarea from '@/components/forms/FormTextarea';
 
 interface ContactFormData {
   name: string;
@@ -109,20 +110,13 @@ const ContactForm: React.FC = () => {
             onChange={handleChange}
           />
           
-          <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
-              Message
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              rows={5}
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormTextarea
+            id="message"
+            label="Message"
+            value={formData.message}
+            onChange={handleChange}
+            required
+          />
           
           <Button 
             type="submit" 
