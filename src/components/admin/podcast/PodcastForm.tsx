@@ -3,21 +3,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Form, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormControl, 
-  FormMessage 
-} from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Card } from '@/components/ui/card';
 import { FirestorePodcast } from '@/services/firebase';
 import { PodcastPreview } from '@/components/admin/PodcastPreview';
+import { PodcastFormControls } from './form/PodcastFormControls';
+import { PodcastAudioUpload } from './form/PodcastAudioUpload';
 
 const podcastSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -65,18 +58,18 @@ export const PodcastForm = ({
     onSubmit(data, selectedAudioFile, selectedCoverFile);
   };
 
-  const handleCoverFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedCoverFile(e.target.files[0]);
-    }
-  };
-
   const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setSelectedAudioFile(file);
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
+    }
+  };
+
+  const handleCoverFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedCoverFile(e.target.files[0]);
     }
   };
 
@@ -152,143 +145,38 @@ export const PodcastForm = ({
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="audio_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Audio</FormLabel>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div className="col-span-2">
-                  <FormControl>
-                    <Input 
-                      placeholder="https://example.com/podcast.mp3" 
-                      {...field} 
-                      onChange={(e) => {
-                        field.onChange(e);
-                        if (e.target.value !== field.value) {
-                          setPreviewUrl(null);
-                        }
-                      }}
-                    />
-                  </FormControl>
-                </div>
-                <div className="flex space-x-2">
-                  <div className="relative flex-1">
-                    <Input
-                      type="file"
-                      id="audioFileUpload"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={handleAudioFileChange}
-                      accept="audio/*"
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
-                    </Button>
-                  </div>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handlePreview}
-                    disabled={!field.value && !selectedAudioFile}
-                  >
-                    Preview
-                  </Button>
-                </div>
-              </div>
-              {selectedAudioFile && (
-                <p className="text-sm mt-1 text-emerald-500">
-                  Selected: {selectedAudioFile.name}
-                </p>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
+        <PodcastAudioUpload
+          form={form}
+          selectedFile={selectedAudioFile}
+          onFileChange={handleAudioFileChange}
+          onPreview={handlePreview}
+          previewDisabled={!form.getValues('audio_url') && !selectedAudioFile}
         />
         
         {previewUrl && (
-          <div className="border rounded-md p-4 bg-card">
+          <Card className="p-4">
             <h3 className="text-sm font-medium mb-2">Audio Preview</h3>
             <PodcastPreview audioUrl={previewUrl} />
-          </div>
+          </Card>
         )}
         
-        <FormField
-          control={form.control}
-          name="cover_image_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cover Image</FormLabel>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div className="col-span-2">
-                  <FormControl>
-                    <Input 
-                      placeholder="https://example.com/image.jpg" 
-                      {...field} 
-                    />
-                  </FormControl>
-                </div>
-                <div>
-                  <div className="relative">
-                    <Input
-                      type="file"
-                      id="coverImageUpload"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={handleCoverFileChange}
-                      accept="image/*"
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              {selectedCoverFile && (
-                <p className="text-sm mt-1 text-emerald-500">
-                  Selected: {selectedCoverFile.name}
-                </p>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
+        <FormMediaUpload
+          id="coverImageUpload"
+          label="Cover Image"
+          urlValue={form.watch('cover_image_url')}
+          onUrlChange={(value) => form.setValue('cover_image_url', value)}
+          selectedFile={selectedCoverFile}
+          onFileChange={handleCoverFileChange}
+          accept="image/*"
+          urlPlaceholder="https://example.com/image.jpg"
+          error={form.formState.errors.cover_image_url?.message}
         />
         
-        <div className="flex justify-end space-x-2 pt-4">
-          {onCancel && (
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-          )}
-          <Button 
-            type="submit"
-            className="bg-adapty-aqua hover:bg-adapty-aqua/80"
-            disabled={isSubmitting || uploading}
-          >
-            {(isSubmitting || uploading) ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {uploading ? 'Uploading...' : 'Publishing...'}
-              </>
-            ) : (
-              'Publish Episode'
-            )}
-          </Button>
-        </div>
+        <PodcastFormControls
+          isSubmitting={isSubmitting}
+          onCancel={onCancel}
+          uploading={uploading}
+        />
       </form>
     </Form>
   );
