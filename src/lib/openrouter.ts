@@ -1,5 +1,6 @@
 
-const OPENROUTER_API_KEY = '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';
+// Note: In a production environment, this key should be stored securely in environment variables
+const OPENROUTER_API_KEY = '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';
 
 export interface Message {
   role: 'user' | 'assistant' | 'system';
