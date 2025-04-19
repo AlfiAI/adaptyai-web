@@ -1,9 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { sendMessageToOpenRouter } from '@/lib/openrouter';
+import { Loader2, X } from 'lucide-react';
 
 const LexAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +18,14 @@ const LexAssistant = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom of messages whenever messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -23,20 +33,30 @@ const LexAssistant = () => {
     if (!message.trim()) return;
     
     const userMessage = { type: 'user', text: message };
-    setMessages([...messages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setMessage('');
     setIsLoading(true);
     
     try {
-      // In a real implementation, this would send a request to OpenRouter API
-      // For now we'll simulate a response
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          type: 'assistant',
-          text: "I'm here to help with any questions about Adapty AI. What would you like to know about our services or technology?"
-        }]);
-        setIsLoading(false);
-      }, 1000);
+      // Format messages for OpenRouter API
+      const formattedMessages = messages.map(msg => ({
+        role: msg.type === 'assistant' ? 'assistant' : 'user',
+        content: msg.text
+      }));
+      
+      // Add the new user message
+      formattedMessages.push({
+        role: 'user',
+        content: userMessage.text
+      });
+      
+      // Send to OpenRouter
+      const response = await sendMessageToOpenRouter(formattedMessages);
+      
+      setMessages(prev => [...prev, {
+        type: 'assistant',
+        text: response
+      }]);
     } catch (error) {
       console.error('Error sending message to L.E.X.:', error);
       toast({
@@ -44,6 +64,13 @@ const LexAssistant = () => {
         description: "Please try again later.",
         variant: "destructive"
       });
+      
+      // Add fallback message
+      setMessages(prev => [...prev, {
+        type: 'assistant',
+        text: "I'm sorry, I'm having trouble connecting right now. Please try again later."
+      }]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -51,7 +78,7 @@ const LexAssistant = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
-        <Card className="w-[350px] mb-4 animate-slide-up p-4">
+        <Card className="w-[350px] mb-4 animate-slide-up shadow-[0_0_20px_rgba(0,255,247,0.2)] p-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-2">
               <img
@@ -67,10 +94,7 @@ const LexAssistant = () => {
               onClick={() => setIsOpen(false)}
               className="text-white hover:text-adapty-aqua"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
@@ -86,7 +110,7 @@ const LexAssistant = () => {
                 )}
                 <div className={`p-2 rounded-lg max-w-[80%] ${
                   msg.type === 'assistant' 
-                    ? 'bg-adapty-aqua/10 text-white' 
+                    ? 'bg-adapty-aqua/10 text-white border border-adapty-aqua/20' 
                     : 'bg-adapty-aqua text-black'
                 }`}>
                   <p className="m-0 text-sm">{msg.text}</p>
@@ -100,18 +124,22 @@ const LexAssistant = () => {
                   alt="L.E.X. Avatar"
                   className="w-6 h-6 rounded-full mr-2 mt-1"
                 />
-                <div className="bg-adapty-aqua/10 text-white p-2 rounded-lg">
-                  <p className="m-0 text-sm">Thinking...</p>
+                <div className="bg-adapty-aqua/10 text-white p-2 rounded-lg border border-adapty-aqua/20">
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <p className="m-0 text-sm">Thinking...</p>
+                  </div>
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <form onSubmit={handleSubmit} className="flex space-x-2">
             <input
               type="text"
               placeholder="Type your message..."
-              className="flex-1 px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua"
+              className="flex-1 px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               disabled={isLoading}
@@ -132,6 +160,7 @@ const LexAssistant = () => {
               <Button 
                 className="w-14 h-14 rounded-full bg-transparent border-adapty-aqua animate-pulse-glow"
                 onClick={() => setIsOpen(true)}
+                data-lex-toggle="true"
               >
                 <img
                   src="/lovable-uploads/213caa2e-dffa-4921-a27e-2614469d9a30.png"

@@ -14,6 +14,7 @@ export const submitContactForm = async (formData: {
       ...formData,
       createdAt: Timestamp.now()
     });
+    console.log("Contact form submitted with ID:", docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error submitting contact form:', error);
@@ -37,6 +38,7 @@ export const submitScheduleBooking = async (bookingData: {
       createdAt: Timestamp.now(),
       status: 'pending'
     });
+    console.log("Booking submitted with ID:", docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error submitting booking:', error);
@@ -44,8 +46,23 @@ export const submitScheduleBooking = async (bookingData: {
   }
 };
 
+// Interface for blog posts from Firestore
+export interface FirestoreBlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content?: string;
+  date: any; // Could be Timestamp or date string
+  author: string;
+  category: string;
+  image: string;
+  slug?: string;
+  tags?: string[];
+  published?: boolean;
+}
+
 // Get blog posts
-export const getBlogPosts = async (postsToLoad = 6) => {
+export const getBlogPosts = async (postsToLoad = 6): Promise<FirestoreBlogPost[]> => {
   try {
     const q = query(
       collection(db, 'posts'),
@@ -54,10 +71,28 @@ export const getBlogPosts = async (postsToLoad = 6) => {
     );
     
     const querySnapshot = await getDocs(q);
-    const posts = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    
+    if (querySnapshot.empty) {
+      console.log("No blog posts found in Firestore, using placeholders");
+      return [];
+    }
+    
+    const posts = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title || 'Untitled Post',
+        excerpt: data.excerpt || 'No description available',
+        date: data.date || data.createdAt || Timestamp.now(),
+        author: data.author || 'Anonymous',
+        category: data.category || 'Uncategorized',
+        image: data.image || '/placeholder.svg',
+        slug: data.slug || doc.id,
+        content: data.content || '',
+        tags: data.tags || [],
+        published: data.published !== false // Default to true if not specified
+      } as FirestoreBlogPost;
+    });
     
     return posts;
   } catch (error) {

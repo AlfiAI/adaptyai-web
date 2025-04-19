@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
 import { Card } from '@/components/ui/card';
-import { Check, Loader2, Mail, MessageSquare, Phone, MapPin } from 'lucide-react';
+import { Check, Loader2, Mail, Phone, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { submitContactForm } from '@/services/firebaseService';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -32,10 +33,8 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // In a real implementation, this would submit to Firestore
-      // For now we'll simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Contact form submitted:', formData);
+      // Submit to Firestore
+      await submitContactForm(formData);
       
       setIsSuccess(true);
       toast({

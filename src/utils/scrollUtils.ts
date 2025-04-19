@@ -11,5 +11,24 @@ export const scrollToSection = (sectionId: string) => {
       top: offsetPosition,
       behavior: 'smooth'
     });
+    
+    // Add hash to URL without causing a page jump
+    window.history.pushState(null, '', `#${sectionId}`);
+  } else {
+    console.log(`Element with id ${sectionId} not found`);
   }
+};
+
+export const setupSmoothScrolling = () => {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const href = this.getAttribute('href');
+      
+      if (href && href.startsWith('#')) {
+        const targetId = href.substring(1);
+        scrollToSection(targetId);
+      }
+    });
+  });
 };

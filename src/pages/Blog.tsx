@@ -10,8 +10,19 @@ import { Loader2 } from 'lucide-react';
 import { getBlogPosts } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 
+// Define the blog post type to match Firestore data structure
+interface BlogPost {
+  id: string | number;
+  title: string;
+  excerpt: string;
+  date: string | { seconds: number };
+  author: string;
+  category: string;
+  image: string;
+}
+
 // Placeholder blog data for when Firestore is not available
-const placeholderPosts = [
+const placeholderPosts: BlogPost[] = [
   {
     id: 1,
     title: 'The Future of AI in Business',
@@ -69,7 +80,7 @@ const placeholderPosts = [
 ];
 
 const Blog = () => {
-  const [blogPosts, setBlogPosts] = useState(placeholderPosts);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(placeholderPosts);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [postsToShow, setPostsToShow] = useState(6);
@@ -80,7 +91,17 @@ const Blog = () => {
       try {
         const posts = await getBlogPosts(postsToShow);
         if (posts && posts.length > 0) {
-          setBlogPosts(posts);
+          // Make sure posts have all required fields before setting state
+          const formattedPosts = posts.map(post => ({
+            id: post.id || '',
+            title: post.title || 'Untitled Post',
+            excerpt: post.excerpt || 'No description available',
+            date: post.date || new Date().toISOString(),
+            author: post.author || 'Anonymous',
+            category: post.category || 'Uncategorized',
+            image: post.image || '/placeholder.svg'
+          }));
+          setBlogPosts(formattedPosts);
         }
       } catch (error) {
         console.error('Error loading blog posts:', error);
@@ -136,6 +157,17 @@ const Blog = () => {
     }
   };
 
+  // Helper function to safely format date
+  const formatDate = (date: string | { seconds: number }): string => {
+    if (typeof date === 'string') {
+      return date;
+    }
+    if (date && typeof date === 'object' && 'seconds' in date) {
+      return new Date(date.seconds * 1000).toLocaleDateString();
+    }
+    return 'Unknown date';
+  };
+
   return (
     <PageContainer>
       <Section>
@@ -175,7 +207,7 @@ const Blog = () => {
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="mb-2 flex justify-between text-sm text-gray-400">
                       <span>{post.category}</span>
-                      <span>{typeof post.date === 'string' ? post.date : new Date(post.date?.seconds * 1000).toLocaleDateString()}</span>
+                      <span>{formatDate(post.date)}</span>
                     </div>
                     <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
                     <p className="text-gray-400 mb-4 flex-1">{post.excerpt}</p>
@@ -226,10 +258,11 @@ const Blog = () => {
           <Button 
             className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80 animate-pulse-glow"
             onClick={() => {
-              // Find the LexAssistant component and trigger it
-              document.querySelector('[data-lex-toggle]')?.dispatchEvent(
-                new Event('click', { bubbles: true })
-              );
+              // Find the L.E.X. assistant component and toggle it
+              const lexButton = document.querySelector('button[data-lex-toggle]');
+              if (lexButton) {
+                lexButton.click();
+              }
             }}
           >
             Ask L.E.X.
