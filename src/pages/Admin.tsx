@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,14 +18,43 @@ const Admin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Check if user is already authenticated via localStorage
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
+    if (isAuthenticated) {
+      setAuthenticated(true);
+    }
+  }, []);
 
   const handleAuthentication = () => {
     if (password === ADMIN_PASSWORD) {
       setAuthenticated(true);
       setError("");
+      localStorage.setItem('adminAuthenticated', 'true');
+      toast({
+        title: "Success",
+        description: "You've successfully logged in to the admin area.",
+      });
     } else {
       setError("Invalid password. Please try again.");
+      toast({
+        title: "Authentication Failed",
+        description: "The password you entered is incorrect.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const handleLogout = () => {
+    setAuthenticated(false);
+    setPassword("");
+    localStorage.removeItem('adminAuthenticated');
+    toast({
+      title: "Logged Out",
+      description: "You've been logged out of the admin area.",
+    });
   };
 
   if (!authenticated) {
@@ -43,6 +73,7 @@ const Admin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAuthentication()}
+                className="bg-gray-800 border-gray-700 text-white"
               />
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button 
@@ -64,13 +95,21 @@ const Admin = () => {
         <div className="flex flex-col space-y-6">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <Button 
-              variant="outline" 
-              className="text-gray-400 hover:text-gray-100"
-              onClick={() => navigate('/blog')}
-            >
-              Back to Blog
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                variant="outline" 
+                className="text-gray-400 hover:text-gray-100"
+                onClick={() => navigate('/blog')}
+              >
+                Back to Blog
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </div>
           </div>
           
           <Tabs defaultValue="blog" className="w-full">
