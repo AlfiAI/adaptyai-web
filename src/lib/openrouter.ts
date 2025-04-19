@@ -1,7 +1,7 @@
 
 const OPENROUTER_API_KEY = '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';
 
-interface Message {
+export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }

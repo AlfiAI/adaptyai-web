@@ -4,13 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { sendMessageToOpenRouter } from '@/lib/openrouter';
+import { sendMessageToOpenRouter, Message } from '@/lib/openrouter';
 import { Loader2, X } from 'lucide-react';
+
+interface ChatMessage {
+  type: 'user' | 'assistant';
+  text: string;
+}
 
 const LexAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       type: 'assistant',
       text: "Hello! I'm L.E.X., your AI assistant. How can I help you today?"
@@ -32,14 +37,14 @@ const LexAssistant = () => {
     
     if (!message.trim()) return;
     
-    const userMessage = { type: 'user', text: message };
+    const userMessage = { type: 'user' as const, text: message };
     setMessages(prev => [...prev, userMessage]);
     setMessage('');
     setIsLoading(true);
     
     try {
       // Format messages for OpenRouter API
-      const formattedMessages = messages.map(msg => ({
+      const formattedMessages: Message[] = messages.map(msg => ({
         role: msg.type === 'assistant' ? 'assistant' : 'user',
         content: msg.text
       }));

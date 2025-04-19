@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import PageContainer from '@/components/layout/PageContainer';
@@ -10,7 +9,6 @@ import { Loader2 } from 'lucide-react';
 import { getBlogPosts } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 
-// Define the blog post type to match Firestore data structure
 interface BlogPost {
   id: string | number;
   title: string;
@@ -21,7 +19,6 @@ interface BlogPost {
   image: string;
 }
 
-// Placeholder blog data for when Firestore is not available
 const placeholderPosts: BlogPost[] = [
   {
     id: 1,
@@ -91,7 +88,6 @@ const Blog = () => {
       try {
         const posts = await getBlogPosts(postsToShow);
         if (posts && posts.length > 0) {
-          // Make sure posts have all required fields before setting state
           const formattedPosts = posts.map(post => ({
             id: post.id || '',
             title: post.title || 'Untitled Post',
@@ -123,7 +119,6 @@ const Blog = () => {
     try {
       const newPostsCount = postsToShow + 3;
       setPostsToShow(newPostsCount);
-      // The useEffect will handle loading the additional posts
     } catch (error) {
       console.error('Error loading more posts:', error);
       toast({
@@ -157,7 +152,6 @@ const Blog = () => {
     }
   };
 
-  // Helper function to safely format date
   const formatDate = (date: string | { seconds: number }): string => {
     if (typeof date === 'string') {
       return date;
@@ -166,6 +160,13 @@ const Blog = () => {
       return new Date(date.seconds * 1000).toLocaleDateString();
     }
     return 'Unknown date';
+  };
+
+  const openLexAssistant = () => {
+    const lexButton = document.querySelector('button[data-lex-toggle]');
+    if (lexButton && lexButton instanceof HTMLElement) {
+      lexButton.click();
+    }
   };
 
   return (
@@ -257,13 +258,7 @@ const Blog = () => {
           </p>
           <Button 
             className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80 animate-pulse-glow"
-            onClick={() => {
-              // Find the L.E.X. assistant component and toggle it
-              const lexButton = document.querySelector('button[data-lex-toggle]');
-              if (lexButton) {
-                lexButton.click();
-              }
-            }}
+            onClick={openLexAssistant}
           >
             Ask L.E.X.
           </Button>
