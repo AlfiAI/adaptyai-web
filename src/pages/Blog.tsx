@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import { Button } from '@/components/ui/button';
 import { getBlogPosts } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import BlogHeader from '@/components/blog/BlogHeader';
 import BlogList from '@/components/blog/BlogList';
+import LexIntegration from '@/components/blog/LexIntegration';
 
 interface BlogPost {
   id: string | number;
@@ -139,13 +139,6 @@ const Blog = () => {
     return 'Unknown date';
   };
 
-  const openLexAssistant = () => {
-    const lexButton = document.querySelector('button[data-lex-toggle]');
-    if (lexButton && lexButton instanceof HTMLElement) {
-      lexButton.click();
-    }
-  };
-
   return (
     <PageContainer>
       <Section>
@@ -157,21 +150,7 @@ const Blog = () => {
           loadMorePosts={loadMorePosts}
           formatDate={formatDate}
         />
-        
-        <div className="mt-20 bg-black/30 border border-adapty-aqua/20 rounded-lg p-8 text-center">
-          <h3 className="text-2xl font-semibold mb-4">
-            Ask L.E.X. about this topic
-          </h3>
-          <p className="text-gray-300 mb-4">
-            Have questions about the articles? Use our AI assistant to learn more.
-          </p>
-          <Button 
-            className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80 animate-pulse-glow"
-            onClick={openLexAssistant}
-          >
-            Ask L.E.X.
-          </Button>
-        </div>
+        <LexIntegration />
       </Section>
     </PageContainer>
   );
