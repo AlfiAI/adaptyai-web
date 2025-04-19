@@ -21,7 +21,7 @@ const Podcast = () => {
   // Query to fetch podcasts
   const { data: podcasts, isLoading, error } = useQuery({
     queryKey: ['podcasts'],
-    queryFn: async () => await getPodcasts(),
+    queryFn: () => getPodcasts(),
   });
 
   if (error) {

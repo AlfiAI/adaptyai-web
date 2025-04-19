@@ -13,7 +13,7 @@ export type DateFormatFunction = (date: string | { seconds: number }) => string;
 
 export interface PodcastEpisode {
   id: string;
-  title: string;
+  title: string;           // Changed from episodeTitle to title
   description: string;
   audioLink: string;
   guestName: string;

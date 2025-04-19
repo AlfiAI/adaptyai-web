@@ -7,17 +7,7 @@ import { Play, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PodcastPreview } from '@/components/admin/PodcastPreview';
 import { formatDistanceToNow } from 'date-fns';
-
-interface PodcastEpisode {
-  id: string;
-  episodeTitle: string;
-  guestName: string;
-  topic: string;
-  description: string;
-  date: any; // Could be Date, timestamp, or string
-  audioLink: string;
-  coverImageURL: string;
-}
+import { PodcastEpisode } from '@/types/blog';
 
 interface PodcastEpisodeCardProps {
   episode: PodcastEpisode;
@@ -59,7 +49,7 @@ export const PodcastEpisodeCard: React.FC<PodcastEpisodeCardProps> = ({ episode 
           <div className="relative">
             <img 
               src={episode.coverImageURL || '/placeholder.svg'} 
-              alt={episode.episodeTitle} 
+              alt={episode.title}
               className="w-full h-48 object-cover"
             />
             <Button 
@@ -71,10 +61,10 @@ export const PodcastEpisodeCard: React.FC<PodcastEpisodeCardProps> = ({ episode 
           </div>
           <div className="p-6 flex-1 flex flex-col">
             <div className="mb-2 flex justify-between text-sm text-gray-400">
-              <span>{episode.topic}</span>
+              <span>AI Podcast</span>
               <span>{formatDate(episode.date)}</span>
             </div>
-            <h3 className="text-xl font-semibold mb-2">{episode.episodeTitle}</h3>
+            <h3 className="text-xl font-semibold mb-2">{episode.title}</h3>
             <p className="text-gray-400 mb-4 flex-1 line-clamp-3">{episode.description}</p>
             <div className="flex justify-between items-center mt-auto pt-4 border-t border-white/10">
               <span className="text-sm text-gray-400">With {episode.guestName}</span>
@@ -93,14 +83,14 @@ export const PodcastEpisodeCard: React.FC<PodcastEpisodeCardProps> = ({ episode 
       <Dialog open={playerOpen} onOpenChange={setPlayerOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>{episode.episodeTitle}</DialogTitle>
+            <DialogTitle>{episode.title}</DialogTitle>
           </DialogHeader>
           <div className="mt-2">
             <PodcastPreview audioUrl={episode.audioLink} />
           </div>
           <div className="mt-4">
             <h3 className="font-semibold mb-1">Guest: {episode.guestName}</h3>
-            <p className="text-sm text-gray-400 mb-3">{episode.topic} • {formatDate(episode.date)}</p>
+            <p className="text-sm text-gray-400 mb-3">AI Podcast • {formatDate(episode.date)}</p>
             <p className="text-gray-300">{episode.description}</p>
           </div>
         </DialogContent>
