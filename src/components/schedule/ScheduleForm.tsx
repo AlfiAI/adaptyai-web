@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
@@ -6,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { submitScheduleBooking } from '@/services/firebaseService';
+import FormInput from '@/components/forms/FormInput';
+import FormSelect from '@/components/forms/FormSelect';
 
 interface ScheduleFormData {
   name: string;
@@ -19,6 +20,15 @@ interface ScheduleFormProps {
   selectedDate: string | null;
   selectedTime: string | null;
 }
+
+const topicOptions = [
+  { value: "Custom AI Solutions", label: "Custom AI Solutions" },
+  { value: "Machine Learning", label: "Machine Learning" },
+  { value: "Natural Language Processing", label: "Natural Language Processing" },
+  { value: "AI Consulting", label: "AI Consulting" },
+  { value: "AI Integration", label: "AI Integration" },
+  { value: "Other", label: "Other" }
+];
 
 const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime }) => {
   const [formData, setFormData] = useState<ScheduleFormData>({
@@ -37,6 +47,13 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime 
     setFormData(prevData => ({
       ...prevData,
       [name]: value
+    }));
+  };
+
+  const handleTopicChange = (value: string) => {
+    setFormData(prevData => ({
+      ...prevData,
+      topic: value
     }));
   };
 
@@ -107,85 +124,46 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime 
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="name"
+            label="Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
           
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="email"
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
           
-          <div>
-            <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">
-              Company
-            </label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="company"
+            label="Company"
+            value={formData.company}
+            onChange={handleChange}
+          />
           
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
-              Phone
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="phone"
+            label="Phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+          />
           
-          <div>
-            <label htmlFor="topic" className="block text-sm font-medium text-gray-300 mb-1">
-              Topic
-            </label>
-            <select
-              id="topic"
-              name="topic"
-              value={formData.topic}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            >
-              <option value="">Select a topic</option>
-              <option value="Custom AI Solutions">Custom AI Solutions</option>
-              <option value="Machine Learning">Machine Learning</option>
-              <option value="Natural Language Processing">Natural Language Processing</option>
-              <option value="AI Consulting">AI Consulting</option>
-              <option value="AI Integration">AI Integration</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+          <FormSelect
+            id="topic"
+            label="Topic"
+            value={formData.topic}
+            onChange={handleTopicChange}
+            options={topicOptions}
+            required
+          />
           
           <div className="py-4">
             <h3 className="text-lg font-medium mb-2">Selected Slot</h3>

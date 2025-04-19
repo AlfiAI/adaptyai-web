@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/services/firebaseService';
+import FormInput from '@/components/forms/FormInput';
 
 interface ContactFormData {
   name: string;
@@ -85,49 +85,29 @@ const ContactForm: React.FC = () => {
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="name"
+            label="Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
           
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="email"
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
           
-          <div>
-            <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">
-              Company
-            </label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            />
-          </div>
+          <FormInput
+            id="company"
+            label="Company"
+            value={formData.company}
+            onChange={handleChange}
+          />
           
           <div>
             <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
@@ -141,7 +121,7 @@ const ContactForm: React.FC = () => {
               required
               rows={5}
               className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-            ></textarea>
+            />
           </div>
           
           <Button 
