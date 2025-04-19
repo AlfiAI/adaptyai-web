@@ -11,6 +11,7 @@ import { FirestorePodcast } from '@/services/firebase';
 import { PodcastPreview } from '@/components/admin/PodcastPreview';
 import { PodcastFormControls } from './form/PodcastFormControls';
 import { PodcastAudioUpload } from './form/PodcastAudioUpload';
+import { FormMediaUpload } from '@/components/forms/shared/FormMediaUpload';
 
 const podcastSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
