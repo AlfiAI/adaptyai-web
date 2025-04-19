@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Check, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { submitScheduleBooking } from '@/services/firebaseService';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
+import SuccessMessage from '@/components/feedback/SuccessMessage';
+import ScheduleFormFields from './ScheduleFormFields';
 
 interface ScheduleFormData {
   name: string;
@@ -118,76 +117,20 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ selectedDate, selectedTime 
       <h2 className="text-2xl font-semibold mb-6">Your Details</h2>
       
       {isSuccess ? (
-        <motion.div 
-          className="flex flex-col items-center justify-center h-[350px] text-center"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="w-16 h-16 bg-adapty-aqua/20 rounded-full flex items-center justify-center mb-4">
-            <Check className="h-8 w-8 text-adapty-aqua" />
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Call Scheduled!</h3>
-          <p className="text-gray-400">We look forward to speaking with you soon.</p>
-        </motion.div>
+        <SuccessMessage 
+          title="Call Scheduled!"
+          description="We look forward to speaking with you soon."
+        />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            id="name"
-            label="Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
+          <ScheduleFormFields
+            formData={formData}
+            handleChange={handleChange}
+            handleTopicChange={handleTopicChange}
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            topicOptions={topicOptions}
           />
-          
-          <FormInput
-            id="email"
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          
-          <FormInput
-            id="company"
-            label="Company"
-            value={formData.company}
-            onChange={handleChange}
-          />
-          
-          <FormInput
-            id="phone"
-            label="Phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-          
-          <FormSelect
-            id="topic"
-            label="Topic"
-            value={formData.topic}
-            onChange={handleTopicChange}
-            options={topicOptions}
-            required
-          />
-          
-          <div className="py-4">
-            <h3 className="text-lg font-medium mb-2">Selected Slot</h3>
-            {selectedDate && selectedTime ? (
-              <p className="text-adapty-aqua">
-                {new Date(selectedDate).toLocaleDateString('en-US', { 
-                  weekday: 'long',
-                  month: 'long', 
-                  day: 'numeric',
-                  year: 'numeric'
-                })} at {selectedTime}
-              </p>
-            ) : (
-              <p className="text-gray-400">Please select a date and time</p>
-            )}
-          </div>
           
           <Button 
             type="submit" 
