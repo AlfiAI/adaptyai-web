@@ -1,18 +1,9 @@
-
 import { collection, addDoc, getDocs, query, orderBy, limit, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { PodcastData } from '@/lib/dataAccess/types';
 
 // Interface for podcast episodes from Firestore
-export interface FirestorePodcast {
-  id: string;
-  title: string;
-  description: string;
-  audio_url: string;
-  guest_name?: string;
-  duration: string;
-  published_at: any;
-  cover_image_url: string;
-}
+export type FirestorePodcast = PodcastData;
 
 // Submit podcast to Firestore
 export const submitPodcast = async (podcastData: {

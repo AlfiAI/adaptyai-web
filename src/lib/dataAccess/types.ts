@@ -16,7 +16,7 @@ export interface UserProfile {
 
 // Blog Post Interfaces
 export interface BlogPostData {
-  id?: string;
+  id: string; // Changed from optional to required
   title: string;
   excerpt: string;
   body: string;
@@ -28,7 +28,7 @@ export interface BlogPostData {
 
 // Podcast Interfaces
 export interface PodcastData {
-  id?: string;
+  id: string; // Changed from optional to required
   title: string;
   description: string;
   audio_url: string;

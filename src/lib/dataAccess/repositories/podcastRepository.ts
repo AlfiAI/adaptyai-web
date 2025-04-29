@@ -30,7 +30,7 @@ export class FirebasePodcastRepository extends BaseRepository<PodcastData> {
       const podcasts = querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          id: doc.id,
+          id: doc.id, // This is now guaranteed to be a string
           title: data.title || 'Untitled Episode',
           description: data.description || 'No description available',
           audio_url: data.audio_url || '',

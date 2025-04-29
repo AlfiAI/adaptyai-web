@@ -130,8 +130,14 @@ const LexAssistant = () => {
     // Remove the error message
     setMessages(prev => prev.slice(0, -1));
     
-    // Get the last user message
-    const lastUserMessage = messages.findLast(msg => msg.type === 'user');
+    // Get the last user message - Fixed findLast issue by using traditional loop
+    let lastUserMessage: ChatMessage | undefined;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].type === 'user') {
+        lastUserMessage = messages[i];
+        break;
+      }
+    }
     
     if (lastUserMessage) {
       setMessage(lastUserMessage.text);

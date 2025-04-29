@@ -3,17 +3,17 @@ export interface BlogPost {
   id: string | number;
   title: string;
   excerpt: string;
-  date: string | { seconds: number };
+  date: string | { seconds: number } | Date; // Added Date as valid type
   author: string;
   category: string;
   image: string;
 }
 
-export type DateFormatFunction = (date: string | { seconds: number }) => string;
+export type DateFormatFunction = (date: string | { seconds: number } | Date) => string; // Updated to include Date
 
 export interface PodcastEpisode {
   id: string;
-  title: string;           // Changed from episodeTitle to title
+  title: string;
   description: string;
   audioLink: string;
   guestName: string;

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
@@ -120,6 +121,9 @@ const Blog: React.FC = () => {
   };
 
   const formatDate: DateFormatFunction = (date) => {
+    if (date instanceof Date) {
+      return date.toLocaleDateString();
+    }
     if (typeof date === 'string') {
       return new Date(date).toLocaleDateString();
     }

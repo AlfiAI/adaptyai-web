@@ -1,18 +1,9 @@
-
 import { collection, addDoc, getDocs, query, orderBy, limit, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { BlogPostData } from '@/lib/dataAccess/types';
 
 // Interface for blog posts from Firestore
-export interface FirestoreBlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  body: string;
-  author: string;
-  published_at: any;
-  tags: string[];
-  cover_image_url: string;
-}
+export type FirestoreBlogPost = BlogPostData;
 
 // Submit blog post to Firestore
 export const submitBlogPost = async (postData: {

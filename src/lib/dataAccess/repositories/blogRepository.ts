@@ -30,7 +30,7 @@ export class FirebaseBlogRepository extends BaseRepository<BlogPostData> {
       const posts = querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          id: doc.id,
+          id: doc.id, // This is now guaranteed to be a string
           title: data.title || 'Untitled Post',
           excerpt: data.excerpt || 'No description available',
           body: data.body || '',
