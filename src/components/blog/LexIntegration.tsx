@@ -21,6 +21,11 @@ const LexIntegration: React.FC = () => {
         className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80 animate-pulse-glow"
         onClick={openLexAssistant}
       >
+        <img 
+          src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
+          alt="L.E.X. Avatar"
+          className="w-5 h-5 mr-2 rounded-full"
+        />
         Ask L.E.X.
       </Button>
     </div>

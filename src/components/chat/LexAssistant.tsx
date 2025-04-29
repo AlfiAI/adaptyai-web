@@ -152,7 +152,7 @@ const LexAssistant = () => {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-2">
               <img
-                src="/lovable-uploads/213caa2e-dffa-4921-a27e-2614469d9a30.png"
+                src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
                 alt="L.E.X. Avatar"
                 className="w-8 h-8 rounded-full"
               />
@@ -173,7 +173,7 @@ const LexAssistant = () => {
               <div key={index} className={`flex items-start mb-3 ${msg.type === 'user' ? 'justify-end' : ''}`}>
                 {msg.type === 'assistant' && (
                   <img
-                    src="/lovable-uploads/213caa2e-dffa-4921-a27e-2614469d9a30.png"
+                    src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
                     alt="L.E.X. Avatar"
                     className="w-6 h-6 rounded-full mr-2 mt-1"
                   />
@@ -190,7 +190,7 @@ const LexAssistant = () => {
             {isLoading && (
               <div className="flex items-start mb-3">
                 <img
-                  src="/lovable-uploads/213caa2e-dffa-4921-a27e-2614469d9a30.png"
+                  src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
                   alt="L.E.X. Avatar"
                   className="w-6 h-6 rounded-full mr-2 mt-1"
                 />
@@ -254,7 +254,7 @@ const LexAssistant = () => {
                 data-lex-toggle="true"
               >
                 <img
-                  src="/lovable-uploads/213caa2e-dffa-4921-a27e-2614469d9a30.png"
+                  src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
                   alt="L.E.X. Avatar"
                   className="w-12 h-12 rounded-full"
                 />
