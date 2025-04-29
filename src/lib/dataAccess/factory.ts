@@ -1,4 +1,3 @@
-
 import { FirebaseBlogRepository } from './repositories/blogRepository';
 import { FirebasePodcastRepository } from './repositories/podcastRepository';
 import { FirebaseConversationRepository } from './repositories/conversationRepository';
@@ -9,18 +8,10 @@ import { FirebaseUserRepository } from './repositories/userRepository';
 import { SupabaseUserRepository } from './repositories/supabase/userSBRepository';
 import { FirebaseAgentRepository } from './repositories/agentRepository';
 import { SupabaseAgentRepository } from './repositories/supabase/agentSBRepository';
-import dataConfig from './config';
+import dataConfig, { DataProvider } from './config';
 
 import type { BlogPostData, PodcastData, Conversation, ConversationRepository, UserProfile, AgentInfo } from './types';
 import type { DataRepository } from './types';
-
-/**
- * Data provider enum to specify which storage system to use
- */
-export enum DataProvider {
-  FIREBASE = 'firebase',
-  SUPABASE = 'supabase',
-}
 
 /**
  * Factory that creates repositories based on specified storage provider

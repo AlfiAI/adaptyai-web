@@ -1,6 +1,11 @@
 
-// Import the DataProvider enum directly
-import { DataProvider } from './factory';
+/**
+ * Data provider enum to specify which storage system to use
+ */
+export enum DataProvider {
+  FIREBASE = 'firebase',
+  SUPABASE = 'supabase',
+}
 
 // Configuration for the data access layer
 const dataConfig = {
