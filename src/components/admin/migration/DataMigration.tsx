@@ -7,8 +7,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AlertCircle, CheckCircle, Database, ArrowRight, Loader } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DataMigrationUtility } from '@/lib/dataAccess/migrations/migrateToSupabase';
-import { updateDataProvider, updateFeatureFlag } from '@/lib/dataAccess/config';
-import { DataProvider } from '@/lib/dataAccess/factory';
+import { updateDataProvider, updateFeatureFlag, DataProvider } from '@/lib/dataAccess/config';
+import { RepositoryFactory } from '@/lib/dataAccess/factory';
 import { useToast } from '@/hooks/use-toast';
 
 export const DataMigration: React.FC = () => {

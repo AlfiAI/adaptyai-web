@@ -1,5 +1,6 @@
 
-import { DataProvider, RepositoryFactory } from '../factory';
+import { RepositoryFactory } from '../factory';
+import { DataProvider } from '../config';
 import type { BlogPostData, PodcastData, Conversation } from '../types';
 
 /**
