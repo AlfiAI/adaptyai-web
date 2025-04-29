@@ -1,149 +1,24 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
-import { sendMessageToOpenRouter, Message } from '@/lib/openrouter';
-import { Loader2, X, MessageSquare } from 'lucide-react';
-import { getConversationRepository } from '@/lib/dataAccess';
-
-interface ChatMessage {
-  type: 'user' | 'assistant';
-  text: string;
-}
+import { X, MessageSquare } from 'lucide-react';
+import ChatMessageList from './ChatMessageList';
+import ChatInputForm from './ChatInputForm';
+import { useLexChat } from './useLexChat';
 
 const LexAssistant = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      type: 'assistant',
-      text: "Hello! I'm L.E.X., your AI assistant. How can I help you today?"
-    }
-  ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [conversationId, setConversationId] = useState<string | undefined>();
-  const [hasError, setHasError] = useState(false);
-  const { toast } = useToast();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Scroll to bottom of messages whenever messages change
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-
-  // Load conversation history if we have a conversation ID
-  useEffect(() => {
-    const loadConversation = async () => {
-      if (!conversationId) return;
-      
-      try {
-        const conversationRepo = getConversationRepository();
-        const conversation = await conversationRepo.getById(conversationId);
-        
-        if (conversation && conversation.messages.length > 0) {
-          // Convert conversation messages to chat messages format
-          const chatMessages = conversation.messages.map(msg => ({
-            type: msg.role === 'assistant' ? 'assistant' as const : 'user' as const,
-            text: msg.content
-          }));
-          
-          // Only set messages if we have conversation history and it's not just the welcome message
-          if (chatMessages.length > 1) {
-            setMessages(chatMessages);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading conversation history:', error);
-      }
-    };
-    
-    loadConversation();
-  }, [conversationId]);
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    
-    if (!message.trim()) return;
-    
-    const userMessage = { type: 'user' as const, text: message };
-    setMessages(prev => [...prev, userMessage]);
-    setMessage('');
-    setIsLoading(true);
-    setHasError(false);
-    
-    try {
-      // Format messages for OpenRouter API
-      const formattedMessages: Message[] = messages.map(msg => ({
-        role: msg.type === 'assistant' ? 'assistant' : 'user',
-        content: msg.text
-      }));
-      
-      // Add the new user message
-      formattedMessages.push({
-        role: 'user',
-        content: userMessage.text
-      });
-      
-      // Send to OpenRouter
-      const { content, conversationId: newConversationId } = await sendMessageToOpenRouter(
-        formattedMessages, 
-        conversationId
-      );
-      
-      // Update conversation ID if we got a new one
-      if (newConversationId && newConversationId !== 'error' && newConversationId !== 'fallback') {
-        setConversationId(newConversationId);
-      }
-      
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        text: content
-      }]);
-    } catch (error) {
-      console.error('Error sending message to L.E.X.:', error);
-      setHasError(true);
-      
-      toast({
-        title: "Couldn't send message",
-        description: "Please try again later.",
-        variant: "destructive"
-      });
-      
-      // Add fallback message
-      setMessages(prev => [...prev, {
-        type: 'assistant',
-        text: "I'm sorry, I'm having trouble connecting right now. Please try again later."
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Function to retry the last message if there was an error
-  const handleRetry = () => {
-    if (messages.length < 2) return;
-    
-    // Remove the error message
-    setMessages(prev => prev.slice(0, -1));
-    
-    // Get the last user message - Fixed findLast issue by using traditional loop
-    let lastUserMessage: ChatMessage | undefined;
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].type === 'user') {
-        lastUserMessage = messages[i];
-        break;
-      }
-    }
-    
-    if (lastUserMessage) {
-      setMessage(lastUserMessage.text);
-      handleSubmit();
-    }
-  };
+  const {
+    isOpen,
+    setIsOpen,
+    messages,
+    isLoading,
+    conversationId,
+    hasError,
+    sendMessage,
+    handleRetry
+  } = useLexChat();
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -168,72 +43,17 @@ const LexAssistant = () => {
             </Button>
           </div>
 
-          <div className="h-[300px] overflow-y-auto mb-4 p-3 bg-black/30 rounded-md">
-            {messages.map((msg, index) => (
-              <div key={index} className={`flex items-start mb-3 ${msg.type === 'user' ? 'justify-end' : ''}`}>
-                {msg.type === 'assistant' && (
-                  <img
-                    src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
-                    alt="L.E.X. Avatar"
-                    className="w-6 h-6 rounded-full mr-2 mt-1"
-                  />
-                )}
-                <div className={`p-2 rounded-lg max-w-[80%] ${
-                  msg.type === 'assistant' 
-                    ? 'bg-adapty-aqua/10 text-white border border-adapty-aqua/20' 
-                    : 'bg-adapty-aqua text-black'
-                }`}>
-                  <p className="m-0 text-sm">{msg.text}</p>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start mb-3">
-                <img
-                  src="/lovable-uploads/8a61a1a9-32d1-44df-ab93-d4d6dfae9992.png"
-                  alt="L.E.X. Avatar"
-                  className="w-6 h-6 rounded-full mr-2 mt-1"
-                />
-                <div className="bg-adapty-aqua/10 text-white p-2 rounded-lg border border-adapty-aqua/20">
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <p className="m-0 text-sm">Thinking...</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            {hasError && (
-              <div className="flex justify-center my-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleRetry}
-                  className="text-xs border-adapty-aqua/40 text-adapty-aqua hover:bg-adapty-aqua/10"
-                >
-                  <Loader2 className="h-3 w-3 mr-1" /> Retry message
-                </Button>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+          <ChatMessageList 
+            messages={messages} 
+            isLoading={isLoading} 
+            hasError={hasError} 
+            onRetry={handleRetry} 
+          />
 
-          <form onSubmit={handleSubmit} className="flex space-x-2">
-            <input
-              type="text"
-              placeholder="Type your message..."
-              className="flex-1 px-3 py-2 bg-black/30 border border-white/10 rounded-md focus:outline-none focus:border-adapty-aqua focus:shadow-[0_0_10px_rgba(0,255,247,0.25)]"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              disabled={isLoading}
-            />
-            <Button 
-              className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80"
-              type="submit"
-              disabled={isLoading}
-            >
-              Send
-            </Button>
-          </form>
+          <ChatInputForm 
+            isLoading={isLoading} 
+            onSendMessage={sendMessage} 
+          />
           
           {conversationId && conversationId !== 'error' && conversationId !== 'fallback' && (
             <div className="mt-2 flex justify-center">
