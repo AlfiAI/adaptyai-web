@@ -3,15 +3,18 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import { Card } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-// Import new section components
+// Import section components
 import AboutSection from '@/components/sections/AboutSection';
 import ServicesSection from '@/components/sections/ServicesSection';
 import EthosSection from '@/components/sections/EthosSection';
+import JoinMissionSection from '@/components/sections/JoinMissionSection';
+import PartnerWithUsSection from '@/components/sections/PartnerWithUsSection';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Home = () => {
+  const isMobile = useIsMobile();
+
   return (
     <PageContainer>
       {/* Hero Section */}
@@ -32,7 +35,7 @@ const Home = () => {
                   className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80 px-8 py-6 text-lg rounded-2xl transition-all duration-300 shadow-[0_0_10px_rgba(0,255,247,0.3)] hover:shadow-[0_0_20px_rgba(0,255,247,0.6)]"
                   asChild
                 >
-                  <a href="#about">
+                  <a href="#join-mission">
                     Join the Mission
                   </a>
                 </Button>
@@ -41,7 +44,7 @@ const Home = () => {
                   className="border-adapty-aqua text-adapty-aqua hover:bg-adapty-aqua/10 px-8 py-6 text-lg rounded-2xl transition-all duration-300"
                   asChild
                 >
-                  <a href="#contact">
+                  <a href="#partner-with-us">
                     Partner with Us
                   </a>
                 </Button>
@@ -54,6 +57,7 @@ const Home = () => {
                   src="/lovable-uploads/52771ff6-9f17-4730-b5a2-2a88e3487edc.png" 
                   alt="Adapty AI Logo" 
                   className="w-3/4 max-w-md relative z-10"
+                  loading="lazy"
                 />
               </div>
             </div>
@@ -69,6 +73,12 @@ const Home = () => {
 
       {/* Ethos Section */}
       <EthosSection />
+
+      {/* Join Mission Section */}
+      <JoinMissionSection />
+
+      {/* Partner With Us Section */}
+      <PartnerWithUsSection />
 
       {/* CTA Section */}
       <Section className="bg-gradient-radial">

@@ -14,7 +14,7 @@ const ContactInfo: React.FC = () => {
           </div>
           <div>
             <h3 className="text-lg font-medium mb-1">Email</h3>
-            <p className="text-gray-400">alfi@adaptyai.agency</p>
+            <p className="text-gray-400">info.adaptyai@gmail.com</p>
           </div>
         </div>
         
@@ -42,10 +42,10 @@ const ContactInfo: React.FC = () => {
       <div className="mt-8">
         <h3 className="text-lg font-medium mb-4">Follow Us</h3>
         <div className="flex space-x-4">
-          <SocialLink href="#" icon="facebook" />
-          <SocialLink href="#" icon="linkedin" />
-          <SocialLink href="#" icon="instagram" />
-          <SocialLink href="#" icon="telegram" />
+          <SocialLink href="https://facebook.com/" icon="facebook" />
+          <SocialLink href="https://linkedin.com/" icon="linkedin" />
+          <SocialLink href="https://instagram.com/" icon="instagram" />
+          <SocialLink href="https://t.me/" icon="telegram" />
         </div>
       </div>
     </Card>

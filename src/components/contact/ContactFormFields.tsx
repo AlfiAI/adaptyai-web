@@ -2,25 +2,25 @@
 import FormInput from '@/components/forms/FormInput';
 import FormTextarea from '@/components/forms/FormTextarea';
 
+interface ContactFormFields {
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+}
+
 interface ContactFormFieldsProps {
-  formData: {
-    name: string;
-    email: string;
-    company: string;
-    message: string;
-  };
+  formData: ContactFormFields;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-const ContactFormFields: React.FC<ContactFormFieldsProps> = ({
-  formData,
-  handleChange
-}) => {
+const ContactFormFields: React.FC<ContactFormFieldsProps> = ({ formData, handleChange }) => {
   return (
     <>
       <FormInput
         id="name"
-        label="Name"
+        label="Your Name"
+        type="text"
         value={formData.name}
         onChange={handleChange}
         required
@@ -28,7 +28,7 @@ const ContactFormFields: React.FC<ContactFormFieldsProps> = ({
       
       <FormInput
         id="email"
-        label="Email"
+        label="Email Address"
         type="email"
         value={formData.email}
         onChange={handleChange}
@@ -37,7 +37,8 @@ const ContactFormFields: React.FC<ContactFormFieldsProps> = ({
       
       <FormInput
         id="company"
-        label="Company"
+        label="Company Name"
+        type="text"
         value={formData.company}
         onChange={handleChange}
       />
@@ -48,6 +49,7 @@ const ContactFormFields: React.FC<ContactFormFieldsProps> = ({
         value={formData.message}
         onChange={handleChange}
         required
+        rows={5}
       />
     </>
   );

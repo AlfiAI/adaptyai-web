@@ -33,6 +33,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Podcast = lazy(() => import("./pages/Podcast"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 // Configure Query Client with retry and caching
 const queryClient = new QueryClient({
@@ -72,6 +74,8 @@ const App = () => (
                       } />
                       <Route path="/podcast" element={<Podcast />} />
                       <Route path="/auth" element={<Auth />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                      <Route path="/terms" element={<Terms />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
