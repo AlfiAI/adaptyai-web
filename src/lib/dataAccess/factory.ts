@@ -5,8 +5,13 @@ import { FirebaseConversationRepository } from './repositories/conversationRepos
 import { SupabaseBlogRepository } from './repositories/supabase/blogSBRepository';
 import { SupabasePodcastRepository } from './repositories/supabase/podcastSBRepository';
 import { SupabaseConversationRepository } from './repositories/supabase/conversationSBRepository';
+import { FirebaseUserRepository } from './repositories/userRepository';
+import { SupabaseUserRepository } from './repositories/supabase/userSBRepository';
+import { FirebaseAgentRepository } from './repositories/agentRepository';
+import { SupabaseAgentRepository } from './repositories/supabase/agentSBRepository';
+import dataConfig from './config';
 
-import type { BlogPostData, PodcastData, Conversation, ConversationRepository } from './types';
+import type { BlogPostData, PodcastData, Conversation, ConversationRepository, UserProfile, AgentInfo } from './types';
 import type { DataRepository } from './types';
 
 /**
@@ -21,7 +26,7 @@ export enum DataProvider {
  * Factory that creates repositories based on specified storage provider
  */
 export class RepositoryFactory {
-  private static provider: DataProvider = DataProvider.FIREBASE;
+  private static provider: DataProvider = dataConfig.provider;
 
   /**
    * Set the global data provider
@@ -39,10 +44,20 @@ export class RepositoryFactory {
   }
 
   /**
+   * Get provider for a specific feature from feature flags
+   */
+  private static getProviderForFeature(feature: keyof typeof dataConfig.features): DataProvider {
+    return dataConfig.features[feature] || this.provider;
+  }
+
+  /**
    * Create a blog repository
    */
   static createBlogRepository(): DataRepository<BlogPostData> {
-    switch (this.provider) {
+    const provider = this.getProviderForFeature('blogs');
+    if (dataConfig.debug) console.log(`Creating blog repository with ${provider} provider`);
+    
+    switch (provider) {
       case DataProvider.FIREBASE:
         return new FirebaseBlogRepository();
       case DataProvider.SUPABASE:
@@ -56,7 +71,10 @@ export class RepositoryFactory {
    * Create a podcast repository
    */
   static createPodcastRepository(): DataRepository<PodcastData> {
-    switch (this.provider) {
+    const provider = this.getProviderForFeature('podcasts');
+    if (dataConfig.debug) console.log(`Creating podcast repository with ${provider} provider`);
+    
+    switch (provider) {
       case DataProvider.FIREBASE:
         return new FirebasePodcastRepository();
       case DataProvider.SUPABASE:
@@ -70,13 +88,50 @@ export class RepositoryFactory {
    * Create a conversation repository
    */
   static createConversationRepository(): ConversationRepository {
-    switch (this.provider) {
+    const provider = this.getProviderForFeature('conversations');
+    if (dataConfig.debug) console.log(`Creating conversation repository with ${provider} provider`);
+    
+    switch (provider) {
       case DataProvider.FIREBASE:
         return new FirebaseConversationRepository();
       case DataProvider.SUPABASE:
         return new SupabaseConversationRepository();
       default:
         return new FirebaseConversationRepository();
+    }
+  }
+  
+  /**
+   * Create a user repository
+   */
+  static createUserRepository(): DataRepository<UserProfile> {
+    const provider = this.getProviderForFeature('users');
+    if (dataConfig.debug) console.log(`Creating user repository with ${provider} provider`);
+    
+    switch (provider) {
+      case DataProvider.FIREBASE:
+        return new FirebaseUserRepository();
+      case DataProvider.SUPABASE:
+        return new SupabaseUserRepository();
+      default:
+        return new FirebaseUserRepository();
+    }
+  }
+  
+  /**
+   * Create an agent info repository
+   */
+  static createAgentRepository(): DataRepository<AgentInfo> {
+    const provider = this.getProviderForFeature('agents');
+    if (dataConfig.debug) console.log(`Creating agent repository with ${provider} provider`);
+    
+    switch (provider) {
+      case DataProvider.FIREBASE:
+        return new FirebaseAgentRepository();
+      case DataProvider.SUPABASE:
+        return new SupabaseAgentRepository();
+      default:
+        return new FirebaseAgentRepository();
     }
   }
 }
@@ -100,4 +155,18 @@ export const getPodcastRepository = (): DataRepository<PodcastData> => {
  */
 export const getConversationRepository = (): ConversationRepository => {
   return RepositoryFactory.createConversationRepository();
+};
+
+/**
+ * Helper function to get the user repository
+ */
+export const getUserRepository = (): DataRepository<UserProfile> => {
+  return RepositoryFactory.createUserRepository();
+};
+
+/**
+ * Helper function to get the agent repository
+ */
+export const getAgentRepository = (): DataRepository<AgentInfo> => {
+  return RepositoryFactory.createAgentRepository();
 };

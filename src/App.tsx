@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 // Layout Components
 import Header from "./components/layout/Header";
@@ -29,6 +31,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Podcast = lazy(() => import("./pages/Podcast"));
+const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Configure Query Client with retry and caching
@@ -46,34 +49,41 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <ErrorBoundary>
-        <BrowserRouter>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <div className="flex-1">
-              <ErrorBoundary>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/schedule" element={<Schedule />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/podcast" element={<Podcast />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </ErrorBoundary>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <ErrorBoundary>
+          <BrowserRouter>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <div className="flex-1">
+                <ErrorBoundary>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/schedule" element={<Schedule />} />
+                      <Route path="/admin" element={
+                        <ProtectedRoute requiredRoles={['admin']}>
+                          <Admin />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/podcast" element={<Podcast />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+              </div>
+              <Footer />
+              <LexAssistant />
             </div>
-            <Footer />
-            <LexAssistant />
-          </div>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </TooltipProvider>
+          </BrowserRouter>
+        </ErrorBoundary>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
