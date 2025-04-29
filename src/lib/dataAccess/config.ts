@@ -3,7 +3,7 @@ import { DataProvider } from './factory';
 
 // Configuration for the data access layer
 const dataConfig = {
-  // Default provider - using Firebase as the default while Supabase integration is being developed
+  // Default provider - using Firebase until Supabase integration is fully developed
   provider: DataProvider.FIREBASE,
   
   // Feature flags for specific functionality
