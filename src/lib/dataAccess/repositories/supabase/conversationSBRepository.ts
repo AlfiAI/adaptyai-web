@@ -28,12 +28,11 @@ export class SupabaseConversationRepository
       const conversations: Conversation[] = [];
       
       for (const conversationData of conversationsData) {
-        // Using 'messages' as table name for message queries
-        const { data: messagesData, error: messagesError } = await supabase
-          .from('messages')
+        // Use the messages table helper method
+        const { data: messagesData, error: messagesError } = await this.getMessagesTable()
           .select('*')
           .eq('conversation_id', conversationData.id)
-          .order('timestamp', { ascending: true }) as any;
+          .order('timestamp', { ascending: true });
         
         if (messagesError) throw messagesError;
         
@@ -77,12 +76,11 @@ export class SupabaseConversationRepository
       
       if (!conversationData) return null;
       
-      // Using 'messages' as table name for message queries
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
+      // Use the messages table helper method
+      const { data: messagesData, error: messagesError } = await this.getMessagesTable()
         .select('*')
         .eq('conversation_id', id)
-        .order('timestamp', { ascending: true }) as any;
+        .order('timestamp', { ascending: true });
       
       if (messagesError) throw messagesError;
       
@@ -141,10 +139,9 @@ export class SupabaseConversationRepository
               : new Date().toISOString()
         }));
         
-        // Using 'messages' as table name for message inserts
-        const { error: messagesError } = await supabase
-          .from('messages')
-          .insert(messagesToInsert) as any;
+        // Use the messages table helper method
+        const { error: messagesError } = await this.getMessagesTable()
+          .insert(messagesToInsert);
         
         if (messagesError) throw messagesError;
       }
@@ -189,10 +186,9 @@ export class SupabaseConversationRepository
                 : new Date().toISOString()
           }));
           
-          // Using 'messages' as table name for message inserts
-          const { error: messagesError } = await supabase
-            .from('messages')
-            .insert(messagesToInsert) as any;
+          // Use the messages table helper method
+          const { error: messagesError } = await this.getMessagesTable()
+            .insert(messagesToInsert);
           
           if (messagesError) throw messagesError;
         }
@@ -222,9 +218,8 @@ export class SupabaseConversationRepository
   async addMessage(conversationId: string, message: Omit<ConversationMessage, 'id' | 'conversationId'>): Promise<string> {
     try {
       // Insert the new message
-      // Using 'messages' as table name for message inserts
-      const { data, error: messageError } = await supabase
-        .from('messages')
+      // Use the messages table helper method
+      const { data, error: messageError } = await this.getMessagesTable()
         .insert({
           conversation_id: conversationId,
           role: message.role,
@@ -236,7 +231,7 @@ export class SupabaseConversationRepository
               : new Date().toISOString()
         })
         .select('id')
-        .single() as any;
+        .single();
       
       if (messageError) throw messageError;
       
@@ -273,12 +268,11 @@ export class SupabaseConversationRepository
       const conversations: Conversation[] = [];
       
       for (const conversationData of conversationsData) {
-        // Using 'messages' as table name for message queries
-        const { data: messagesData, error: messagesError } = await supabase
-          .from('messages')
+        // Use the messages table helper method
+        const { data: messagesData, error: messagesError } = await this.getMessagesTable()
           .select('*')
           .eq('conversation_id', conversationData.id)
-          .order('timestamp', { ascending: true }) as any;
+          .order('timestamp', { ascending: true });
         
         if (messagesError) throw messagesError;
         
@@ -307,5 +301,5 @@ export class SupabaseConversationRepository
   }
 }
 
-// Import this separately to avoid direct reference to module
+// Import this separately to avoid circular dependency issues
 import { supabase } from '@/integrations/supabase/client';

@@ -1,7 +1,6 @@
 
 import { BaseSBRepository } from './baseSBRepository';
 import { BlogPostData } from '../../types';
-import { supabase } from '@/integrations/supabase/client';
 import { DataRepository } from '../../types';
 
 /**

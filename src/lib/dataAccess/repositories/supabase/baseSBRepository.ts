@@ -32,9 +32,14 @@ export abstract class BaseSBRepository<T extends { id?: string }> {
   }
 
   // Helper method to safely access Supabase tables
+  // Use type assertion to bypass TypeScript's strict type checking for Supabase tables
+  // This is necessary because our Database type definition doesn't include our custom tables
   protected getTable() {
-    // Using 'any' as a temporary workaround for type issues
-    // This will allow operations to proceed while we work on proper type definitions
     return supabase.from(this.tableName) as any;
+  }
+  
+  // Helper method to access the messages table
+  protected getMessagesTable() {
+    return supabase.from('messages') as any;
   }
 }
