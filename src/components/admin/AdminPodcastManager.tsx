@@ -3,19 +3,22 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { submitPodcast, getPodcasts, deletePodcast, uploadImage, uploadAudio, FirestorePodcast } from '@/services/firebase';
+import { uploadImage, uploadAudio } from '@/services/firebase';
 import { PodcastForm, PodcastFormValues } from './podcast/PodcastForm';
 import { PodcastList } from './podcast/PodcastList';
+import { getPodcastRepository } from '@/lib/dataAccess';
+import type { PodcastData } from '@/lib/dataAccess';
 
 export const AdminPodcastManager = () => {
   const [editingPodcast, setEditingPodcast] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const podcastRepository = getPodcastRepository();
 
   const { data: podcasts, isLoading } = useQuery({
     queryKey: ['podcasts'],
-    queryFn: async () => await getPodcasts(),
+    queryFn: async () => await podcastRepository.getAll(),
   });
 
   const submitMutation = useMutation({
@@ -37,15 +40,29 @@ export const AdminPodcastManager = () => {
           throw new Error("Audio file or URL is required");
         }
         
-        return submitPodcast({
-          title: data.formData.title,
-          description: data.formData.description,
-          audio_url: audioUrl,
-          guest_name: data.formData.guest_name,
-          duration: data.formData.duration,
-          cover_image_url: coverImageUrl,
-          published_at: new Date()
-        });
+        if (editingPodcast) {
+          // Update existing podcast
+          return podcastRepository.update(editingPodcast, {
+            title: data.formData.title,
+            description: data.formData.description,
+            audio_url: audioUrl,
+            guest_name: data.formData.guest_name,
+            duration: data.formData.duration,
+            cover_image_url: coverImageUrl,
+            published_at: new Date()
+          });
+        } else {
+          // Create new podcast
+          return podcastRepository.create({
+            title: data.formData.title,
+            description: data.formData.description,
+            audio_url: audioUrl,
+            guest_name: data.formData.guest_name,
+            duration: data.formData.duration,
+            cover_image_url: coverImageUrl,
+            published_at: new Date()
+          });
+        }
       } finally {
         setUploading(false);
       }
@@ -53,7 +70,9 @@ export const AdminPodcastManager = () => {
     onSuccess: () => {
       toast({
         title: "Success!",
-        description: "Your podcast episode has been published",
+        description: editingPodcast 
+          ? "Your podcast episode has been updated" 
+          : "Your podcast episode has been published",
       });
       setEditingPodcast(null);
       queryClient.invalidateQueries({ queryKey: ['podcasts'] });
@@ -61,14 +80,14 @@ export const AdminPodcastManager = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to publish podcast: " + error,
+        description: `Failed to ${editingPodcast ? 'update' : 'publish'} podcast: ${error}`,
         variant: "destructive",
       });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deletePodcast,
+    mutationFn: (podcastId: string) => podcastRepository.delete(podcastId),
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -89,7 +108,7 @@ export const AdminPodcastManager = () => {
     submitMutation.mutate({ formData: data, audioFile, coverFile });
   };
 
-  const handleEditPodcast = (podcast: FirestorePodcast) => {
+  const handleEditPodcast = (podcast: PodcastData) => {
     setEditingPodcast(podcast.id);
   };
 

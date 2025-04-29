@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import { getPodcasts } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,16 +11,18 @@ import { Loader2 } from 'lucide-react';
 import { PodcastEpisodeCard } from '@/components/podcast/PodcastEpisodeCard';
 import { useQuery } from '@tanstack/react-query';
 import LexIntegration from '@/components/blog/LexIntegration';
+import { getPodcastRepository } from '@/lib/dataAccess';
 
 const Podcast = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('latest');
   const navigate = useNavigate();
+  const podcastRepository = getPodcastRepository();
 
   // Query to fetch podcasts
   const { data: podcasts, isLoading, error } = useQuery({
     queryKey: ['podcasts'],
-    queryFn: () => getPodcasts(),
+    queryFn: () => podcastRepository.getAll(),
   });
 
   if (error) {
@@ -34,6 +35,12 @@ const Podcast = () => {
 
   // Prepare data for rendering
   const formatDate = (timestamp: any) => {
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleDateString();
+    }
+    if (typeof timestamp === 'string') {
+      return new Date(timestamp).toLocaleDateString();
+    }
     if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
       return new Date(timestamp.seconds * 1000).toLocaleDateString();
     }
@@ -109,7 +116,7 @@ const Podcast = () => {
                         <PodcastEpisodeCard 
                           key={episode.id} 
                           episode={{
-                            id: episode.id,
+                            id: episode.id || '',
                             title: episode.title,
                             description: episode.description,
                             audioLink: episode.audio_url,
@@ -131,11 +138,11 @@ const Podcast = () => {
                 {guests.map(guest => (
                   <TabsContent key={guest} value={guest}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {podcastsByGuest[guest].map(episode => (
+                      {podcastsByGuest[guest]?.map(episode => (
                         <PodcastEpisodeCard 
                           key={episode.id} 
                           episode={{
-                            id: episode.id,
+                            id: episode.id || '',
                             title: episode.title,
                             description: episode.description,
                             audioLink: episode.audio_url,

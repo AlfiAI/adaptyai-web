@@ -10,29 +10,20 @@ import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
 import { AdminBlogManager } from '@/components/admin/AdminBlogManager';
 import { AdminPodcastManager } from '@/components/admin/AdminPodcastManager';
-
-const ADMIN_PASSWORD = "adapty2025"; // A simple authentication mechanism for now
+import { useAuthStore } from '@/store/useAuthStore';
 
 const Admin = () => {
-  const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Check if user is already authenticated via localStorage
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
-    if (isAuthenticated) {
-      setAuthenticated(true);
-    }
-  }, []);
+  // Get auth state from our store
+  const { authenticated, login, logout, checkAuth } = useAuthStore();
 
   const handleAuthentication = () => {
-    if (password === ADMIN_PASSWORD) {
-      setAuthenticated(true);
+    if (login(password)) {
       setError("");
-      localStorage.setItem('adminAuthenticated', 'true');
       toast({
         title: "Success",
         description: "You've successfully logged in to the admin area.",
@@ -48,9 +39,8 @@ const Admin = () => {
   };
 
   const handleLogout = () => {
-    setAuthenticated(false);
+    logout();
     setPassword("");
-    localStorage.removeItem('adminAuthenticated');
     toast({
       title: "Logged Out",
       description: "You've been logged out of the admin area.",

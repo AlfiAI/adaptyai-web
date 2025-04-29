@@ -5,7 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { sendMessageToOpenRouter, Message } from '@/lib/openrouter';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, MessageSquare } from 'lucide-react';
+import { getConversationRepository } from '@/lib/dataAccess';
 
 interface ChatMessage {
   type: 'user' | 'assistant';
@@ -22,6 +23,8 @@ const LexAssistant = () => {
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>();
+  const [hasError, setHasError] = useState(false);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +35,35 @@ const LexAssistant = () => {
     }
   }, [messages]);
 
+  // Load conversation history if we have a conversation ID
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!conversationId) return;
+      
+      try {
+        const conversationRepo = getConversationRepository();
+        const conversation = await conversationRepo.getById(conversationId);
+        
+        if (conversation && conversation.messages.length > 0) {
+          // Convert conversation messages to chat messages format
+          const chatMessages = conversation.messages.map(msg => ({
+            type: msg.role === 'assistant' ? 'assistant' as const : 'user' as const,
+            text: msg.content
+          }));
+          
+          // Only set messages if we have conversation history and it's not just the welcome message
+          if (chatMessages.length > 1) {
+            setMessages(chatMessages);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading conversation history:', error);
+      }
+    };
+    
+    loadConversation();
+  }, [conversationId]);
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
@@ -41,6 +73,7 @@ const LexAssistant = () => {
     setMessages(prev => [...prev, userMessage]);
     setMessage('');
     setIsLoading(true);
+    setHasError(false);
     
     try {
       // Format messages for OpenRouter API
@@ -56,14 +89,24 @@ const LexAssistant = () => {
       });
       
       // Send to OpenRouter
-      const response = await sendMessageToOpenRouter(formattedMessages);
+      const { content, conversationId: newConversationId } = await sendMessageToOpenRouter(
+        formattedMessages, 
+        conversationId
+      );
+      
+      // Update conversation ID if we got a new one
+      if (newConversationId && newConversationId !== 'error' && newConversationId !== 'fallback') {
+        setConversationId(newConversationId);
+      }
       
       setMessages(prev => [...prev, {
         type: 'assistant',
-        text: response
+        text: content
       }]);
     } catch (error) {
       console.error('Error sending message to L.E.X.:', error);
+      setHasError(true);
+      
       toast({
         title: "Couldn't send message",
         description: "Please try again later.",
@@ -77,6 +120,22 @@ const LexAssistant = () => {
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to retry the last message if there was an error
+  const handleRetry = () => {
+    if (messages.length < 2) return;
+    
+    // Remove the error message
+    setMessages(prev => prev.slice(0, -1));
+    
+    // Get the last user message
+    const lastUserMessage = messages.findLast(msg => msg.type === 'user');
+    
+    if (lastUserMessage) {
+      setMessage(lastUserMessage.text);
+      handleSubmit();
     }
   };
 
@@ -137,6 +196,18 @@ const LexAssistant = () => {
                 </div>
               </div>
             )}
+            {hasError && (
+              <div className="flex justify-center my-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRetry}
+                  className="text-xs border-adapty-aqua/40 text-adapty-aqua hover:bg-adapty-aqua/10"
+                >
+                  <Loader2 className="h-3 w-3 mr-1" /> Retry message
+                </Button>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -157,6 +228,15 @@ const LexAssistant = () => {
               Send
             </Button>
           </form>
+          
+          {conversationId && conversationId !== 'error' && conversationId !== 'fallback' && (
+            <div className="mt-2 flex justify-center">
+              <p className="text-xs text-gray-400">
+                <MessageSquare className="inline h-3 w-3 mr-1" />
+                Conversation saved
+              </p>
+            </div>
+          )}
         </Card>
       ) : (
         <TooltipProvider>

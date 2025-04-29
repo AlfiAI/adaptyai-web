@@ -1,13 +1,13 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import { getBlogPosts } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import BlogHeader from '@/components/blog/BlogHeader';
 import BlogList from '@/components/blog/BlogList';
 import LexIntegration from '@/components/blog/LexIntegration';
 import { BlogPost, DateFormatFunction } from '@/types/blog';
+import { useQuery } from '@tanstack/react-query';
+import { getBlogRepository } from '@/lib/dataAccess';
 
 const placeholderPosts: BlogPost[] = [
   {
@@ -67,18 +67,19 @@ const placeholderPosts: BlogPost[] = [
 ];
 
 const Blog: React.FC = () => {
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(placeholderPosts);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [postsToShow, setPostsToShow] = useState<number>(6);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const { toast } = useToast();
+  const blogRepository = getBlogRepository();
 
-  useEffect(() => {
-    const loadPosts = async () => {
+  const { data: blogPosts, isLoading: loading } = useQuery({
+    queryKey: ['blogPosts'],
+    queryFn: async () => {
       try {
-        const posts = await getBlogPosts();
+        const posts = await blogRepository.getAll();
+        
         if (posts && posts.length > 0) {
-          const formattedPosts = posts.map(post => ({
+          return posts.map(post => ({
             id: post.id || '',
             title: post.title || 'Untitled Post',
             excerpt: post.excerpt || 'No description available',
@@ -87,8 +88,8 @@ const Blog: React.FC = () => {
             category: post.tags?.length > 0 ? post.tags[0] : 'Uncategorized',
             image: post.cover_image_url || '/placeholder.svg'
           }));
-          setBlogPosts(formattedPosts);
         }
+        return placeholderPosts;
       } catch (error) {
         console.error('Error loading blog posts:', error);
         toast({
@@ -96,13 +97,10 @@ const Blog: React.FC = () => {
           description: "Using placeholder content instead.",
           variant: "destructive"
         });
-      } finally {
-        setLoading(false);
+        return placeholderPosts;
       }
-    };
-
-    loadPosts();
-  }, [postsToShow, toast]);
+    }
+  });
 
   const loadMorePosts = async () => {
     setLoadingMore(true);
@@ -123,7 +121,7 @@ const Blog: React.FC = () => {
 
   const formatDate: DateFormatFunction = (date) => {
     if (typeof date === 'string') {
-      return date;
+      return new Date(date).toLocaleDateString();
     }
     if (date && typeof date === 'object' && 'seconds' in date) {
       return new Date(date.seconds * 1000).toLocaleDateString();
@@ -137,7 +135,7 @@ const Blog: React.FC = () => {
         <BlogHeader />
         <BlogList 
           loading={loading}
-          blogPosts={blogPosts}
+          blogPosts={blogPosts || placeholderPosts}
           loadingMore={loadingMore}
           loadMorePosts={loadMorePosts}
           formatDate={formatDate}

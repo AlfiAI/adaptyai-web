@@ -4,17 +4,20 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { BlogPostForm, BlogPostFormValues } from './blog/BlogPostForm';
 import { BlogPostList } from './blog/BlogPostList';
-import { submitBlogPost, getBlogPosts, deleteBlogPost, uploadImage, FirestoreBlogPost } from '@/services/firebase';
+import { uploadImage } from '@/services/firebase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getBlogRepository } from '@/lib/dataAccess';
+import type { BlogPostData } from '@/lib/dataAccess';
 
 export const AdminBlogManager = () => {
   const [editingPost, setEditingPost] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const blogRepository = getBlogRepository();
 
   const { data: blogPosts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
-    queryFn: async () => await getBlogPosts(),
+    queryFn: async () => await blogRepository.getAll(),
   });
 
   const submitMutation = useMutation({
@@ -32,20 +35,36 @@ export const AdminBlogManager = () => {
       
       const tags = data.formData.tags.split(',').map(tag => tag.trim());
       
-      return submitBlogPost({
-        title: data.formData.title,
-        excerpt: data.formData.excerpt,
-        body: data.formData.body,
-        author: data.formData.author,
-        tags: tags,
-        cover_image_url: coverImageUrl,
-        published_at: new Date()
-      });
+      if (editingPost) {
+        // Update existing post
+        return blogRepository.update(editingPost, {
+          title: data.formData.title,
+          excerpt: data.formData.excerpt,
+          body: data.formData.body,
+          author: data.formData.author,
+          tags: tags,
+          cover_image_url: coverImageUrl,
+          published_at: new Date()
+        });
+      } else {
+        // Create new post
+        return blogRepository.create({
+          title: data.formData.title,
+          excerpt: data.formData.excerpt,
+          body: data.formData.body,
+          author: data.formData.author,
+          tags: tags,
+          cover_image_url: coverImageUrl,
+          published_at: new Date()
+        });
+      }
     },
     onSuccess: () => {
       toast({
         title: "Success!",
-        description: "Your blog post has been published",
+        description: editingPost 
+          ? "Your blog post has been updated" 
+          : "Your blog post has been published",
       });
       setEditingPost(null);
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
@@ -53,14 +72,14 @@ export const AdminBlogManager = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to publish blog post: " + error,
+        description: `Failed to ${editingPost ? 'update' : 'publish'} blog post: ${error}`,
         variant: "destructive",
       });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteBlogPost,
+    mutationFn: (postId: string) => blogRepository.delete(postId),
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -81,7 +100,7 @@ export const AdminBlogManager = () => {
     submitMutation.mutate({ formData: data, file });
   };
 
-  const handleEditPost = (post: FirestoreBlogPost) => {
+  const handleEditPost = (post: BlogPostData) => {
     setEditingPost(post.id);
   };
 
