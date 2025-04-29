@@ -1,7 +1,6 @@
 
 import { BaseSBRepository } from './baseSBRepository';
 import { Conversation, ConversationMessage, ConversationRepository } from '../../types';
-import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Repository for AI assistant conversations using Supabase
@@ -16,8 +15,7 @@ export class SupabaseConversationRepository
 
   async getAll(): Promise<Conversation[]> {
     try {
-      const { data: conversationsData, error: conversationsError } = await supabase
-        .from('conversations')
+      const { data: conversationsData, error: conversationsError } = await this.getTable()
         .select('*')
         .order('updated_at', { ascending: false });
       
@@ -30,15 +28,16 @@ export class SupabaseConversationRepository
       const conversations: Conversation[] = [];
       
       for (const conversationData of conversationsData) {
+        // Using 'messages' as table name for message queries
         const { data: messagesData, error: messagesError } = await supabase
           .from('messages')
           .select('*')
           .eq('conversation_id', conversationData.id)
-          .order('timestamp', { ascending: true });
+          .order('timestamp', { ascending: true }) as any;
         
         if (messagesError) throw messagesError;
         
-        const messages = messagesData?.map(message => ({
+        const messages = messagesData?.map((message: any) => ({
           id: message.id,
           role: message.role as 'user' | 'assistant' | 'system',
           content: message.content,
@@ -64,8 +63,7 @@ export class SupabaseConversationRepository
 
   async getById(id: string): Promise<Conversation | null> {
     try {
-      const { data: conversationData, error: conversationError } = await supabase
-        .from('conversations')
+      const { data: conversationData, error: conversationError } = await this.getTable()
         .select('*')
         .eq('id', id)
         .single();
@@ -79,15 +77,16 @@ export class SupabaseConversationRepository
       
       if (!conversationData) return null;
       
+      // Using 'messages' as table name for message queries
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', id)
-        .order('timestamp', { ascending: true });
+        .order('timestamp', { ascending: true }) as any;
       
       if (messagesError) throw messagesError;
       
-      const messages = messagesData?.map(message => ({
+      const messages = messagesData?.map((message: any) => ({
         id: message.id,
         role: message.role as 'user' | 'assistant' | 'system',
         content: message.content,
@@ -113,8 +112,7 @@ export class SupabaseConversationRepository
       const { messages, ...conversationData } = conversation;
       
       // Create conversation record
-      const { data: newConversation, error: conversationError } = await supabase
-        .from('conversations')
+      const { data: newConversation, error: conversationError } = await this.getTable()
         .insert({
           user_id: conversationData.userId,
           title: conversationData.title,
@@ -143,9 +141,10 @@ export class SupabaseConversationRepository
               : new Date().toISOString()
         }));
         
+        // Using 'messages' as table name for message inserts
         const { error: messagesError } = await supabase
           .from('messages')
-          .insert(messagesToInsert);
+          .insert(messagesToInsert) as any;
         
         if (messagesError) throw messagesError;
       }
@@ -167,8 +166,7 @@ export class SupabaseConversationRepository
           updated_at: new Date().toISOString()
         };
         
-        const { error: updateError } = await supabase
-          .from('conversations')
+        const { error: updateError } = await this.getTable()
           .update(updates)
           .eq('id', id);
         
@@ -191,9 +189,10 @@ export class SupabaseConversationRepository
                 : new Date().toISOString()
           }));
           
+          // Using 'messages' as table name for message inserts
           const { error: messagesError } = await supabase
             .from('messages')
-            .insert(messagesToInsert);
+            .insert(messagesToInsert) as any;
           
           if (messagesError) throw messagesError;
         }
@@ -208,8 +207,7 @@ export class SupabaseConversationRepository
   async delete(id: string): Promise<boolean> {
     try {
       // Due to cascade delete constraints, only need to delete the conversation
-      const { error } = await supabase
-        .from('conversations')
+      const { error } = await this.getTable()
         .delete()
         .eq('id', id);
       
@@ -224,6 +222,7 @@ export class SupabaseConversationRepository
   async addMessage(conversationId: string, message: Omit<ConversationMessage, 'id' | 'conversationId'>): Promise<string> {
     try {
       // Insert the new message
+      // Using 'messages' as table name for message inserts
       const { data, error: messageError } = await supabase
         .from('messages')
         .insert({
@@ -237,7 +236,7 @@ export class SupabaseConversationRepository
               : new Date().toISOString()
         })
         .select('id')
-        .single();
+        .single() as any;
       
       if (messageError) throw messageError;
       
@@ -246,8 +245,7 @@ export class SupabaseConversationRepository
       }
       
       // Update the conversation's updated_at timestamp
-      const { error: updateError } = await supabase
-        .from('conversations')
+      const { error: updateError } = await this.getTable()
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
       
@@ -261,8 +259,7 @@ export class SupabaseConversationRepository
 
   async getConversationsForUser(userId: string): Promise<Conversation[]> {
     try {
-      const { data: conversationsData, error: conversationsError } = await supabase
-        .from('conversations')
+      const { data: conversationsData, error: conversationsError } = await this.getTable()
         .select('*')
         .eq('user_id', userId)
         .order('updated_at', { ascending: false });
@@ -276,15 +273,16 @@ export class SupabaseConversationRepository
       const conversations: Conversation[] = [];
       
       for (const conversationData of conversationsData) {
+        // Using 'messages' as table name for message queries
         const { data: messagesData, error: messagesError } = await supabase
           .from('messages')
           .select('*')
           .eq('conversation_id', conversationData.id)
-          .order('timestamp', { ascending: true });
+          .order('timestamp', { ascending: true }) as any;
         
         if (messagesError) throw messagesError;
         
-        const messages = messagesData?.map(message => ({
+        const messages = messagesData?.map((message: any) => ({
           id: message.id,
           role: message.role as 'user' | 'assistant' | 'system',
           content: message.content,
@@ -308,3 +306,6 @@ export class SupabaseConversationRepository
     }
   }
 }
+
+// Import this separately to avoid direct reference to module
+import { supabase } from '@/integrations/supabase/client';

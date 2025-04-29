@@ -30,4 +30,11 @@ export abstract class BaseSBRepository<T extends { id?: string }> {
       return String(timestamp);
     }
   }
+
+  // Helper method to safely access Supabase tables
+  protected getTable() {
+    // Using 'any' as a temporary workaround for type issues
+    // This will allow operations to proceed while we work on proper type definitions
+    return supabase.from(this.tableName) as any;
+  }
 }

@@ -1,7 +1,6 @@
 
 import { BaseSBRepository } from './baseSBRepository';
 import { PodcastData } from '../../types';
-import { supabase } from '@/integrations/supabase/client';
 import { DataRepository } from '../../types';
 
 /**
@@ -14,8 +13,7 @@ export class SupabasePodcastRepository extends BaseSBRepository<PodcastData> imp
 
   async getAll(): Promise<PodcastData[]> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await this.getTable()
         .select('*')
         .order('published_at', { ascending: false });
       
@@ -43,8 +41,7 @@ export class SupabasePodcastRepository extends BaseSBRepository<PodcastData> imp
 
   async getById(id: string): Promise<PodcastData | null> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await this.getTable()
         .select('*')
         .eq('id', id)
         .single();
@@ -75,8 +72,7 @@ export class SupabasePodcastRepository extends BaseSBRepository<PodcastData> imp
 
   async create(podcastData: Omit<PodcastData, 'id'>): Promise<string> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await this.getTable()
         .insert({
           title: podcastData.title,
           description: podcastData.description,
@@ -115,8 +111,7 @@ export class SupabasePodcastRepository extends BaseSBRepository<PodcastData> imp
       // Add updated_at timestamp
       updates.updated_at = new Date().toISOString();
       
-      const { error } = await supabase
-        .from(this.tableName)
+      const { error } = await this.getTable()
         .update(updates)
         .eq('id', id);
       
@@ -130,8 +125,7 @@ export class SupabasePodcastRepository extends BaseSBRepository<PodcastData> imp
 
   async delete(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from(this.tableName)
+      const { error } = await this.getTable()
         .delete()
         .eq('id', id);
       

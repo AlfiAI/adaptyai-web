@@ -14,8 +14,7 @@ export class SupabaseBlogRepository extends BaseSBRepository<BlogPostData> imple
 
   async getAll(): Promise<BlogPostData[]> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await this.getTable()
         .select('*')
         .order('published_at', { ascending: false });
       
@@ -43,8 +42,7 @@ export class SupabaseBlogRepository extends BaseSBRepository<BlogPostData> imple
 
   async getById(id: string): Promise<BlogPostData | null> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await this.getTable()
         .select('*')
         .eq('id', id)
         .single();
@@ -75,8 +73,7 @@ export class SupabaseBlogRepository extends BaseSBRepository<BlogPostData> imple
 
   async create(postData: Omit<BlogPostData, 'id'>): Promise<string> {
     try {
-      const { data, error } = await supabase
-        .from(this.tableName)
+      const { data, error } = await this.getTable()
         .insert({
           title: postData.title,
           excerpt: postData.excerpt,
@@ -115,8 +112,7 @@ export class SupabaseBlogRepository extends BaseSBRepository<BlogPostData> imple
       // Add updated_at timestamp
       updates.updated_at = new Date().toISOString();
       
-      const { error } = await supabase
-        .from(this.tableName)
+      const { error } = await this.getTable()
         .update(updates)
         .eq('id', id);
       
@@ -130,8 +126,7 @@ export class SupabaseBlogRepository extends BaseSBRepository<BlogPostData> imple
 
   async delete(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from(this.tableName)
+      const { error } = await this.getTable()
         .delete()
         .eq('id', id);
       

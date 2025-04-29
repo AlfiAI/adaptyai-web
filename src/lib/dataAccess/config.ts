@@ -9,7 +9,7 @@ const dataConfig = {
   // Feature flags for specific functionality
   features: {
     blogs: DataProvider.FIREBASE,
-    podcasts: DataProvider.FIREBASE,
+    podcasts: DataProvider.FIREBASE, 
     conversations: DataProvider.FIREBASE,
   },
   
