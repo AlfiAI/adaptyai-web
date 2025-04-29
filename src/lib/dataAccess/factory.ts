@@ -2,7 +2,11 @@
 import { FirebaseBlogRepository } from './repositories/blogRepository';
 import { FirebasePodcastRepository } from './repositories/podcastRepository';
 import { FirebaseConversationRepository } from './repositories/conversationRepository';
-import type { BlogPostData, PodcastData, Conversation } from './types';
+import { SupabaseBlogRepository } from './repositories/supabase/blogSBRepository';
+import { SupabasePodcastRepository } from './repositories/supabase/podcastSBRepository';
+import { SupabaseConversationRepository } from './repositories/supabase/conversationSBRepository';
+
+import type { BlogPostData, PodcastData, Conversation, ConversationRepository } from './types';
 import type { DataRepository } from './types';
 
 /**
@@ -42,9 +46,7 @@ export class RepositoryFactory {
       case DataProvider.FIREBASE:
         return new FirebaseBlogRepository();
       case DataProvider.SUPABASE:
-        // Will be implemented in phase 2
-        console.warn('Supabase blog repository not yet implemented, falling back to Firebase');
-        return new FirebaseBlogRepository();
+        return new SupabaseBlogRepository();
       default:
         return new FirebaseBlogRepository();
     }
@@ -58,9 +60,7 @@ export class RepositoryFactory {
       case DataProvider.FIREBASE:
         return new FirebasePodcastRepository();
       case DataProvider.SUPABASE:
-        // Will be implemented in phase 2
-        console.warn('Supabase podcast repository not yet implemented, falling back to Firebase');
-        return new FirebasePodcastRepository();
+        return new SupabasePodcastRepository();
       default:
         return new FirebasePodcastRepository();
     }
@@ -69,14 +69,12 @@ export class RepositoryFactory {
   /**
    * Create a conversation repository
    */
-  static createConversationRepository(): DataRepository<Conversation> & { addMessage: (conversationId: string, message: any) => Promise<string> } {
+  static createConversationRepository(): ConversationRepository {
     switch (this.provider) {
       case DataProvider.FIREBASE:
         return new FirebaseConversationRepository();
       case DataProvider.SUPABASE:
-        // Will be implemented in phase 2
-        console.warn('Supabase conversation repository not yet implemented, falling back to Firebase');
-        return new FirebaseConversationRepository();
+        return new SupabaseConversationRepository();
       default:
         return new FirebaseConversationRepository();
     }
@@ -100,6 +98,6 @@ export const getPodcastRepository = (): DataRepository<PodcastData> => {
 /**
  * Helper function to get the conversation repository
  */
-export const getConversationRepository = (): DataRepository<Conversation> & { addMessage: (conversationId: string, message: any) => Promise<string> } => {
+export const getConversationRepository = (): ConversationRepository => {
   return RepositoryFactory.createConversationRepository();
 };

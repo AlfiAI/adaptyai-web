@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
 import { AdminBlogManager } from '@/components/admin/AdminBlogManager';
 import { AdminPodcastManager } from '@/components/admin/AdminPodcastManager';
+import { MigrationManager } from '@/components/admin/migration/MigrationManager'; 
 import { useAuthStore } from '@/store/useAuthStore';
 
 const Admin = () => {
@@ -106,6 +107,7 @@ const Admin = () => {
             <TabsList className="w-full max-w-md mb-8">
               <TabsTrigger value="blog" className="flex-1">Blog Manager</TabsTrigger>
               <TabsTrigger value="podcast" className="flex-1">Podcast Manager</TabsTrigger>
+              <TabsTrigger value="data" className="flex-1">Data Migration</TabsTrigger>
             </TabsList>
             
             <TabsContent value="blog">
@@ -114,6 +116,10 @@ const Admin = () => {
             
             <TabsContent value="podcast">
               <AdminPodcastManager />
+            </TabsContent>
+            
+            <TabsContent value="data">
+              <MigrationManager />
             </TabsContent>
           </Tabs>
         </div>

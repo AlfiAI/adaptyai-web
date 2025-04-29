@@ -16,7 +16,7 @@ export interface UserProfile {
 
 // Blog Post Interfaces
 export interface BlogPostData {
-  id: string; // Changed from optional to required
+  id: string; 
   title: string;
   excerpt: string;
   body: string;
@@ -28,7 +28,7 @@ export interface BlogPostData {
 
 // Podcast Interfaces
 export interface PodcastData {
-  id: string; // Changed from optional to required
+  id: string; 
   title: string;
   description: string;
   audio_url: string;
@@ -45,6 +45,8 @@ export interface ConversationMessage {
   content: string;
   timestamp: Date | string;
   conversationId: string;
+  // Optional embedding field for when we can add pgvector
+  embedding?: number[];
 }
 
 export interface Conversation {
@@ -56,6 +58,17 @@ export interface Conversation {
   messages: ConversationMessage[];
 }
 
+// Agent Info Interface
+export interface AgentInfo {
+  id: string;
+  name: string;
+  description: string;
+  capabilities: string[];
+  avatarUrl?: string;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+}
+
 // Generic Repository Interface
 export interface DataRepository<T> {
   getAll(): Promise<T[]>;
@@ -63,4 +76,10 @@ export interface DataRepository<T> {
   create(data: Omit<T, 'id'>): Promise<string>;
   update(id: string, data: Partial<T>): Promise<boolean>;
   delete(id: string): Promise<boolean>;
+}
+
+// Additional interface for conversation repositories
+export interface ConversationRepository extends DataRepository<Conversation> {
+  addMessage(conversationId: string, message: Omit<ConversationMessage, 'id' | 'conversationId'>): Promise<string>;
+  getConversationsForUser(userId: string): Promise<Conversation[]>;
 }
