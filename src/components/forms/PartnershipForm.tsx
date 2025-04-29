@@ -66,8 +66,8 @@ const PartnershipForm = () => {
   const onSubmit = async (values: PartnershipFormValues) => {
     setIsSubmitting(true);
     try {
-      // Store partnership request in Supabase
-      const { error } = await supabase
+      // Store partnership request in Supabase with type assertion to bypass type errors
+      const { error } = await (supabase as any)
         .from('partnership_requests')
         .insert({
           name: values.name,
