@@ -26,7 +26,8 @@ const LoadingFallback = () => (
 
 // Lazy load pages to improve performance
 const Home = lazy(() => import("./pages/Home"));
-const Blog = lazy(() => import("./pages/Blog"));
+const Blog = lazy(() => import("./pages/BlogList"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -65,6 +66,7 @@ const App = () => (
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:slug" element={<BlogPost />} />
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/schedule" element={<Schedule />} />
                       <Route path="/admin" element={

@@ -14,7 +14,7 @@ const dataConfig = {
   
   // Feature flags for specific functionality
   features: {
-    blogs: DataProvider.FIREBASE,
+    blogs: DataProvider.SUPABASE,
     podcasts: DataProvider.FIREBASE, 
     conversations: DataProvider.FIREBASE,
     users: DataProvider.FIREBASE,
@@ -22,7 +22,7 @@ const dataConfig = {
   },
   
   // Set to true to enable debug logging
-  debug: false
+  debug: true
 };
 
 export default dataConfig;

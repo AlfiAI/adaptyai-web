@@ -9,7 +9,7 @@ export interface UserProfile {
   id: string;
   email: string;
   displayName?: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: 'admin' | 'editor' | 'viewer' | null;
   createdAt: Date | string;
   avatarUrl?: string;
 }
@@ -24,6 +24,8 @@ export interface BlogPostData {
   published_at: Date | string;
   tags: string[];
   cover_image_url: string;
+  slug: string;
+  featured: boolean;
 }
 
 // Podcast Interfaces
