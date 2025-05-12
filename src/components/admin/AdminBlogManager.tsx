@@ -8,6 +8,7 @@ import { uploadImage } from '@/services/firebase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getBlogRepository } from '@/lib/dataAccess';
 import type { BlogPostData } from '@/lib/dataAccess';
+import { slugify } from '@/lib/utils';
 
 export const AdminBlogManager = () => {
   const [editingPost, setEditingPost] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export const AdminBlogManager = () => {
       }
       
       const tags = data.formData.tags.split(',').map(tag => tag.trim());
+      const slug = data.formData.slug || slugify(data.formData.title);
       
       if (editingPost) {
         // Update existing post
@@ -44,7 +46,9 @@ export const AdminBlogManager = () => {
           author: data.formData.author,
           tags: tags,
           cover_image_url: coverImageUrl,
-          published_at: new Date()
+          published_at: new Date(),
+          slug: slug,
+          featured: data.formData.featured || false
         });
       } else {
         // Create new post
@@ -55,7 +59,9 @@ export const AdminBlogManager = () => {
           author: data.formData.author,
           tags: tags,
           cover_image_url: coverImageUrl,
-          published_at: new Date()
+          published_at: new Date(),
+          slug: slug,
+          featured: data.formData.featured || false
         });
       }
     },

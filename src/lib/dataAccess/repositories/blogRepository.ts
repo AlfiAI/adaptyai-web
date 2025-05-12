@@ -37,7 +37,9 @@ export class FirebaseBlogRepository extends BaseRepository<BlogPostData> {
           author: data.author || 'Anonymous',
           published_at: data.published_at || data.created_at || Timestamp.now(),
           tags: data.tags || [],
-          cover_image_url: data.cover_image_url || '/placeholder.svg'
+          cover_image_url: data.cover_image_url || '/placeholder.svg',
+          slug: data.slug || 'untitled-post',
+          featured: data.featured || false
         } as BlogPostData;
       });
       
@@ -65,7 +67,9 @@ export class FirebaseBlogRepository extends BaseRepository<BlogPostData> {
         author: data.author || 'Anonymous',
         published_at: data.published_at || data.created_at || Timestamp.now(),
         tags: data.tags || [],
-        cover_image_url: data.cover_image_url || '/placeholder.svg'
+        cover_image_url: data.cover_image_url || '/placeholder.svg',
+        slug: data.slug || 'untitled-post',
+        featured: data.featured || false
       };
     } catch (error) {
       return this.handleError(error, 'get blog post by id');
@@ -81,6 +85,8 @@ export class FirebaseBlogRepository extends BaseRepository<BlogPostData> {
         author: postData.author,
         tags: postData.tags,
         cover_image_url: postData.cover_image_url,
+        slug: postData.slug,
+        featured: postData.featured,
         published_at: postData.published_at instanceof Date 
           ? Timestamp.fromDate(postData.published_at) 
           : typeof postData.published_at === 'string'

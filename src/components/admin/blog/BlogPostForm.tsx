@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { BlogFormControls } from './form/BlogFormControls';
 import { BlogContentEditor } from './form/BlogContentEditor';
 import { BlogCoverUpload } from './form/BlogCoverUpload';
+import { Switch } from '@/components/ui/switch';
+import { slugify } from '@/lib/utils';
 
 export const blogPostSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -19,6 +21,8 @@ export const blogPostSchema = z.object({
   author: z.string().min(1, { message: "Author is required" }),
   body: z.string().min(50, { message: "Content must be at least 50 characters" }),
   cover_image_url: z.string().url({ message: "Please enter a valid image URL" }).or(z.string().length(0)),
+  slug: z.string().optional(),
+  featured: z.boolean().default(false)
 });
 
 export type BlogPostFormValues = z.infer<typeof blogPostSchema>;
@@ -39,10 +43,12 @@ export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: 
     defaultValues: {
       title: initialData?.title || '',
       excerpt: initialData?.excerpt || '',
-      tags: initialData?.tags.join(', ') || '',
+      tags: initialData?.tags?.join(', ') || '',
       author: initialData?.author || '',
       body: initialData?.body || '',
       cover_image_url: initialData?.cover_image_url || '',
+      slug: initialData?.slug || '',
+      featured: initialData?.featured || false
     },
   });
 
@@ -82,6 +88,11 @@ export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: 
       return;
     }
     
+    // Generate slug from title if not provided
+    if (!data.slug) {
+      data.slug = slugify(data.title);
+    }
+    
     onSubmit(data, selectedFile);
   };
 
@@ -96,6 +107,20 @@ export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: 
               <FormLabel>Title</FormLabel>
               <FormControl>
                 <Input placeholder="Enter post title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Slug (optional - will be generated from title if empty)</FormLabel>
+              <FormControl>
+                <Input placeholder="my-post-url" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -149,6 +174,27 @@ export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: 
             )}
           />
         </div>
+        
+        <FormField
+          control={form.control}
+          name="featured"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Featured Post</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  Mark this post as featured to highlight it on the blog homepage
+                </div>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
         
         <BlogCoverUpload
           form={form}
