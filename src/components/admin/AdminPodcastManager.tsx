@@ -3,20 +3,23 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, uploadAudio } from '@/services/firebase';
+import { uploadFileToStorage } from '@/lib/utils';
 import { PodcastForm, PodcastFormValues } from './podcast/PodcastForm';
 import { PodcastList } from './podcast/PodcastList';
 import { getPodcastRepository } from '@/lib/dataAccess';
 import type { PodcastData } from '@/lib/dataAccess';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const AdminPodcastManager = () => {
   const [editingPodcast, setEditingPodcast] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const podcastRepository = getPodcastRepository();
 
-  const { data: podcasts, isLoading } = useQuery({
+  const { data: podcasts, isLoading, isError } = useQuery({
     queryKey: ['podcasts'],
     queryFn: async () => await podcastRepository.getAll(),
   });
@@ -29,11 +32,11 @@ export const AdminPodcastManager = () => {
       setUploading(true);
       try {
         if (data.coverFile) {
-          coverImageUrl = await uploadImage(data.coverFile, 'podcasts/covers');
+          coverImageUrl = await uploadFileToStorage(data.coverFile, 'podcast_covers');
         }
         
         if (data.audioFile) {
-          audioUrl = await uploadAudio(data.audioFile);
+          audioUrl = await uploadFileToStorage(data.audioFile, 'podcast_audio');
         }
         
         if (!audioUrl) {
@@ -75,12 +78,19 @@ export const AdminPodcastManager = () => {
           : "Your podcast episode has been published",
       });
       setEditingPodcast(null);
+      setError(null);
       queryClient.invalidateQueries({ queryKey: ['podcasts'] });
     },
     onError: (error) => {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An unexpected error occurred";
+        
+      setError(`Failed to ${editingPodcast ? 'update' : 'publish'} podcast: ${errorMessage}`);
+      
       toast({
         title: "Error",
-        description: `Failed to ${editingPodcast ? 'update' : 'publish'} podcast: ${error}`,
+        description: `Failed to ${editingPodcast ? 'update' : 'publish'} podcast`,
         variant: "destructive",
       });
     },
@@ -96,20 +106,28 @@ export const AdminPodcastManager = () => {
       queryClient.invalidateQueries({ queryKey: ['podcasts'] });
     },
     onError: (error) => {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An unexpected error occurred";
+        
+      setError(`Failed to delete podcast: ${errorMessage}`);
+      
       toast({
         title: "Error",
-        description: "Failed to delete podcast: " + error,
+        description: "Failed to delete podcast",
         variant: "destructive",
       });
     },
   });
 
   const handleSubmit = (data: PodcastFormValues, audioFile: File | null, coverFile: File | null) => {
+    setError(null);
     submitMutation.mutate({ formData: data, audioFile, coverFile });
   };
 
   const handleEditPodcast = (podcast: PodcastData) => {
     setEditingPodcast(podcast.id);
+    setError(null);
   };
 
   const handleDeletePodcast = (podcastId: string) => {
@@ -118,8 +136,26 @@ export const AdminPodcastManager = () => {
     }
   };
 
+  if (isError) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load podcast episodes. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="space-y-8">
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="w-full lg:w-1/2">
           <Card className="p-6">

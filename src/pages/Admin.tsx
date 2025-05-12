@@ -5,75 +5,94 @@ import { useToast } from '@/hooks/use-toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Lock } from 'lucide-react';
 import { AdminBlogManager } from '@/components/admin/AdminBlogManager';
 import { AdminPodcastManager } from '@/components/admin/AdminPodcastManager';
 import { MigrationManager } from '@/components/admin/migration/MigrationManager'; 
-import { useAuthStore } from '@/store/useAuthStore';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { LogOut, User, ShieldCheck, Info } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Admin = () => {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Get auth state from our store
-  const { authenticated, login, logout, checkAuth } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isCheckingRole, setIsCheckingRole] = useState(true);
 
-  const handleAuthentication = () => {
-    if (login(password)) {
-      setError("");
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) return;
+      
+      try {
+        // Check if user has admin role
+        const { data: isAdmin, error: adminError } = await supabase.rpc('has_role', { 
+          _role: 'admin' 
+        });
+        
+        if (adminError) throw adminError;
+        
+        if (isAdmin) {
+          setUserRole('admin');
+          setIsCheckingRole(false);
+          return;
+        }
+        
+        // Check if user has editor role
+        const { data: isEditor, error: editorError } = await supabase.rpc('has_role', { 
+          _role: 'editor' 
+        });
+        
+        if (editorError) throw editorError;
+        
+        if (isEditor) {
+          setUserRole('editor');
+        } else {
+          setUserRole('viewer');
+        }
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        toast({
+          title: "Error",
+          description: "Could not verify your permissions.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsCheckingRole(false);
+      }
+    };
+    
+    checkAdminRole();
+  }, [user, toast]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
       toast({
-        title: "Success",
-        description: "You've successfully logged in to the admin area.",
+        title: "Logged Out",
+        description: "You've been signed out successfully.",
       });
-    } else {
-      setError("Invalid password. Please try again.");
+      navigate('/auth');
+    } catch (error) {
       toast({
-        title: "Authentication Failed",
-        description: "The password you entered is incorrect.",
+        title: "Error",
+        description: "Failed to sign out.",
         variant: "destructive"
       });
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    setPassword("");
-    toast({
-      title: "Logged Out",
-      description: "You've been logged out of the admin area.",
-    });
-  };
-
-  if (!authenticated) {
+  if (isCheckingRole) {
     return (
       <PageContainer>
-        <Section className="max-w-md mx-auto">
-          <div className="flex flex-col items-center justify-center py-10">
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <Lock className="h-8 w-8 text-adapty-aqua" />
+        <Section>
+          <div className="flex justify-center items-center min-h-[50vh]">
+            <div className="animate-pulse-glow h-16 w-16 rounded-full border-2 border-adapty-aqua flex items-center justify-center">
+              <div className="animate-spin h-12 w-12 border-t-2 border-adapty-aqua border-opacity-50 rounded-full"></div>
             </div>
-            <h1 className="text-2xl font-bold mb-6">Admin Access</h1>
-            <div className="w-full space-y-4">
-              <Input 
-                type="password" 
-                placeholder="Enter admin password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAuthentication()}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button 
-                className="w-full bg-adapty-aqua hover:bg-adapty-aqua/80"
-                onClick={handleAuthentication}
-              >
-                Access Admin Area
-              </Button>
-            </div>
+            <p className="mt-4 text-gray-400">Verifying permissions...</p>
           </div>
         </Section>
       </PageContainer>
@@ -84,44 +103,86 @@ const Admin = () => {
     <PageContainer>
       <Section>
         <div className="flex flex-col space-y-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+              {userRole && (
+                <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full text-sm font-medium">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="capitalize">{userRole}</span>
+                </div>
+              )}
+            </div>
+            
             <div className="flex gap-4">
               <Button 
                 variant="outline" 
-                className="text-gray-400 hover:text-gray-100"
+                className="text-gray-400 hover:text-gray-100 flex items-center gap-2"
                 onClick={() => navigate('/blog')}
               >
-                Back to Blog
+                <Info className="h-4 w-4" /> View Site
               </Button>
+              
               <Button 
                 variant="destructive" 
-                onClick={handleLogout}
+                className="flex items-center gap-2"
+                onClick={handleSignOut}
               >
-                Logout
+                <LogOut className="h-4 w-4" /> Logout
               </Button>
             </div>
           </div>
           
-          <Tabs defaultValue="blog" className="w-full">
-            <TabsList className="w-full max-w-md mb-8">
-              <TabsTrigger value="blog" className="flex-1">Blog Manager</TabsTrigger>
-              <TabsTrigger value="podcast" className="flex-1">Podcast Manager</TabsTrigger>
-              <TabsTrigger value="data" className="flex-1">Data Migration</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="blog">
-              <AdminBlogManager />
-            </TabsContent>
-            
-            <TabsContent value="podcast">
-              <AdminPodcastManager />
-            </TabsContent>
-            
-            <TabsContent value="data">
-              <MigrationManager />
-            </TabsContent>
-          </Tabs>
+          {userRole === 'viewer' && (
+            <Alert variant="destructive" className="mb-4">
+              <ShieldCheck className="h-4 w-4" />
+              <AlertTitle>Insufficient permissions</AlertTitle>
+              <AlertDescription>
+                You need editor or admin permissions to manage content.
+                Please contact an administrator to upgrade your role.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {(userRole === 'admin' || userRole === 'editor') && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Welcome, {user?.email}
+                </CardTitle>
+                <CardDescription>
+                  You have {userRole} privileges. You can manage all content from this dashboard.
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <Tabs defaultValue="blog" className="w-full">
+                  <TabsList className="w-full max-w-md mb-8">
+                    <TabsTrigger value="blog" className="flex-1">Blog Manager</TabsTrigger>
+                    <TabsTrigger value="podcast" className="flex-1">Podcast Manager</TabsTrigger>
+                    {userRole === 'admin' && (
+                      <TabsTrigger value="data" className="flex-1">Data Migration</TabsTrigger>
+                    )}
+                  </TabsList>
+                  
+                  <TabsContent value="blog">
+                    <AdminBlogManager />
+                  </TabsContent>
+                  
+                  <TabsContent value="podcast">
+                    <AdminPodcastManager />
+                  </TabsContent>
+                  
+                  {userRole === 'admin' && (
+                    <TabsContent value="data">
+                      <MigrationManager />
+                    </TabsContent>
+                  )}
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </Section>
     </PageContainer>

@@ -1,9 +1,9 @@
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
-import { UserProfile } from '@/lib/dataAccess/types';
-import { getUserRepository } from '@/lib/dataAccess/factory';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 interface RouteGuardProps {
   children: ReactNode;
@@ -15,37 +15,54 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   requiredRoles = ['viewer', 'editor', 'admin'] 
 }) => {
   const { user, loading } = useAuth();
-  const [userProfile, setUserProfile] = React.useState<UserProfile | null>(null);
-  const [profileLoading, setProfileLoading] = React.useState(true);
+  const [hasRequiredRole, setHasRequiredRole] = useState<boolean | null>(null);
+  const [checkingRole, setCheckingRole] = useState(true);
 
-  React.useEffect(() => {
-    const fetchUserProfile = async () => {
+  useEffect(() => {
+    const checkUserRole = async () => {
       if (!user) {
-        setProfileLoading(false);
+        setHasRequiredRole(false);
+        setCheckingRole(false);
         return;
       }
-      
+
       try {
-        const userRepository = getUserRepository();
-        const profile = await userRepository.getById(user.id);
-        setUserProfile(profile);
+        // Check if user has any of the required roles
+        for (const role of requiredRoles) {
+          const { data, error } = await supabase.rpc('has_role', { _role: role });
+          
+          if (error) {
+            console.error('Error checking role:', error);
+            continue;
+          }
+          
+          if (data === true) {
+            setHasRequiredRole(true);
+            break;
+          }
+        }
+        
+        // If we've checked all roles and none matched
+        setCheckingRole(false);
       } catch (error) {
-        console.error('Error fetching user profile:', error);
-      } finally {
-        setProfileLoading(false);
+        console.error('Error checking user roles:', error);
+        setHasRequiredRole(false);
+        setCheckingRole(false);
       }
     };
-    
-    fetchUserProfile();
-  }, [user]);
 
-  if (loading || profileLoading) {
+    if (user) {
+      checkUserRole();
+    } else {
+      setCheckingRole(loading);
+    }
+  }, [user, loading, requiredRoles]);
+
+  if (loading || checkingRole) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-pulse-glow h-16 w-16 rounded-full border-2 border-adapty-aqua flex items-center justify-center">
-          <div className="animate-spin h-12 w-12 border-t-2 border-adapty-aqua border-opacity-50 rounded-full"></div>
-        </div>
-        <p className="mt-4 text-gray-400">Authenticating...</p>
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <Loader2 className="h-16 w-16 animate-spin text-adapty-aqua" />
+        <p className="mt-4 text-gray-400">Checking authorization...</p>
       </div>
     );
   }
@@ -54,7 +71,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     return <Navigate to="/auth" replace />;
   }
 
-  if (requiredRoles.length > 0 && userProfile && !requiredRoles.includes(userProfile.role as any)) {
+  if (requiredRoles.length > 0 && hasRequiredRole === false) {
     return <Navigate to="/" replace />;
   }
 

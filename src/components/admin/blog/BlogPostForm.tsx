@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { FirestoreBlogPost } from '@/services/firebase';
+import { BlogPostData } from '@/lib/dataAccess/types';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { BlogFormControls } from './form/BlogFormControls';
@@ -13,6 +13,8 @@ import { BlogContentEditor } from './form/BlogContentEditor';
 import { BlogCoverUpload } from './form/BlogCoverUpload';
 import { Switch } from '@/components/ui/switch';
 import { slugify } from '@/lib/utils';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const blogPostSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -29,7 +31,7 @@ export type BlogPostFormValues = z.infer<typeof blogPostSchema>;
 
 interface BlogPostFormProps {
   onSubmit: (data: BlogPostFormValues, file: File | null) => void;
-  initialData?: FirestoreBlogPost;
+  initialData?: BlogPostData;
   isSubmitting: boolean;
   onCancel?: () => void;
 }
@@ -37,6 +39,7 @@ interface BlogPostFormProps {
 export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: BlogPostFormProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<BlogPostFormValues>({
     resolver: zodResolver(blogPostSchema),
@@ -57,48 +60,50 @@ export const BlogPostForm = ({ onSubmit, initialData, isSubmitting, onCancel }: 
       const file = e.target.files[0];
       
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select an image file",
-          variant: "destructive",
-        });
+        setFormError("Please select an image file (JPEG, PNG, GIF, WebP)");
         return;
       }
       
       if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Maximum file size is 5MB",
-          variant: "destructive",
-        });
+        setFormError("Maximum file size is 5MB");
         return;
       }
       
+      setFormError(null);
       setSelectedFile(file);
     }
   };
 
   const handleSubmit = (data: BlogPostFormValues) => {
     if (!data.cover_image_url && !selectedFile) {
-      toast({
-        title: "Cover image required",
-        description: "Please provide a cover image URL or upload an image",
-        variant: "destructive",
-      });
+      setFormError("Please provide a cover image URL or upload an image");
       return;
     }
     
     // Generate slug from title if not provided
     if (!data.slug) {
       data.slug = slugify(data.title);
+    } else {
+      // Ensure slug is properly formatted
+      data.slug = slugify(data.slug);
     }
     
+    setFormError(null);
     onSubmit(data, selectedFile);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {formError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {formError}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <FormField
           control={form.control}
           name="title"

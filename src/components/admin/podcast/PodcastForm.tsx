@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Card } from '@/components/ui/card';
-import { FirestorePodcast } from '@/services/firebase';
+import { PodcastData } from '@/lib/dataAccess/types';
 import { PodcastPreview } from '@/components/admin/PodcastPreview';
 import { PodcastFormControls } from './form/PodcastFormControls';
 import { PodcastAudioUpload } from './form/PodcastAudioUpload';
 import { FormMediaUpload } from '@/components/forms/shared/FormMediaUpload';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const podcastSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
@@ -26,7 +28,7 @@ export type PodcastFormValues = z.infer<typeof podcastSchema>;
 
 interface PodcastFormProps {
   onSubmit: (data: PodcastFormValues, audioFile: File | null, coverFile: File | null) => void;
-  initialData?: FirestorePodcast;
+  initialData?: PodcastData;
   isSubmitting: boolean;
   onCancel?: () => void;
   uploading?: boolean;
@@ -42,6 +44,7 @@ export const PodcastForm = ({
   const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
   const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.audio_url || null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<PodcastFormValues>({
     resolver: zodResolver(podcastSchema),
@@ -56,21 +59,63 @@ export const PodcastForm = ({
   });
 
   const handleSubmit = (data: PodcastFormValues) => {
+    // Validate that either audio URL or audio file is provided
+    if (!data.audio_url && !selectedAudioFile) {
+      setFormError("Please provide an audio URL or upload an audio file");
+      return;
+    }
+    
+    // Validate that either cover image URL or cover file is provided
+    if (!data.cover_image_url && !selectedCoverFile) {
+      setFormError("Please provide a cover image URL or upload an image");
+      return;
+    }
+    
+    setFormError(null);
     onSubmit(data, selectedAudioFile, selectedCoverFile);
   };
 
   const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+      
+      // Validate audio file type
+      if (!file.type.startsWith('audio/')) {
+        setFormError("Please select an audio file (MP3, WAV, OGG)");
+        return;
+      }
+      
+      // Validate file size (100MB max)
+      if (file.size > 100 * 1024 * 1024) {
+        setFormError("Maximum audio file size is 100MB");
+        return;
+      }
+      
       setSelectedAudioFile(file);
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
+      setFormError(null);
     }
   };
 
   const handleCoverFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedCoverFile(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      // Validate image file type
+      if (!file.type.startsWith('image/')) {
+        setFormError("Please select an image file (JPEG, PNG, GIF, WebP)");
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setFormError("Maximum image file size is 5MB");
+        return;
+      }
+      
+      setSelectedCoverFile(file);
+      setFormError(null);
     }
   };
 
@@ -78,12 +123,22 @@ export const PodcastForm = ({
     const audioLink = form.getValues("audio_url");
     if (audioLink) {
       setPreviewUrl(audioLink);
+      setFormError(null);
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {formError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {formError}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <FormField
           control={form.control}
           name="title"
