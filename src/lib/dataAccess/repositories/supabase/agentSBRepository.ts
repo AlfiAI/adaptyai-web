@@ -1,9 +1,9 @@
 
-import { BaseSupabaseRepository } from './baseSBRepository';
+import { BaseSBRepository } from './baseSBRepository';
 import { AgentInfo, AgentFeature, AgentFaq } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
 
-export class SupabaseAgentRepository extends BaseSupabaseRepository<AgentInfo> {
+export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
   constructor() {
     super('agents');
   }
