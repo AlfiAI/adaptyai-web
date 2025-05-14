@@ -114,7 +114,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
           shortDescription: values.shortDescription,
           fullDescription: values.fullDescription,
           agentType: values.agentType,
-          capabilities: values.capabilities,
+          capabilities: values.capabilities as unknown as string[],
           avatarUrl: values.avatarUrl || null,
           themeColor: values.themeColor,
         });
@@ -131,7 +131,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
           shortDescription: values.shortDescription,
           fullDescription: values.fullDescription,
           agentType: values.agentType,
-          capabilities: values.capabilities,
+          capabilities: values.capabilities as unknown as string[],
           avatarUrl: values.avatarUrl || null,
           themeColor: values.themeColor,
           createdAt: new Date(),
