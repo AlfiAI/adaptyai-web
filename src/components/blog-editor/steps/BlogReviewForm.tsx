@@ -3,7 +3,7 @@ import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { BlogFormData } from '../BlogEditorForm';
+import { BlogFormData } from '../types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Calendar, Tag, Pin } from 'lucide-react';

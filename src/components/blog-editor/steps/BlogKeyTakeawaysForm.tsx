@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { BlogFormData } from '../BlogEditorForm';
+import { BlogFormData } from '../types';
 import { Plus, Trash, MoveUp, MoveDown } from 'lucide-react';
 
 interface BlogKeyTakeawaysFormProps {

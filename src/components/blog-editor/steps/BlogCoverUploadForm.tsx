@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { uploadFileToStorage } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { BlogFormData } from '../BlogEditorForm';
+import { BlogFormData } from '../types';
 import { Progress } from '@/components/ui/progress';
 import { Upload, Image, XCircle, RefreshCw } from 'lucide-react';
 
