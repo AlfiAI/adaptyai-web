@@ -91,14 +91,16 @@ export const useBlogEditorForm = () => {
   useEffect(() => {
     const formData = getValues();
     
-    setCompletedSteps(prev => ({
-      ...prev,
+    // Fix: Use an explicit object instead of a function to update completedSteps
+    const updatedSteps: Record<string, boolean> = {
       'step-1': !!(formData.title && formData.slug),
       'step-2': !!formData.cover_image_url,
       'step-3': !!(formData.key_takeaways && formData.key_takeaways.length > 0),
       'step-4': !!(formData.body && formData.body.length > 10),
       'step-5': true // FAQs are optional
-    }));
+    };
+    
+    setCompletedSteps(updatedSteps);
   }, [watch, getValues, setCompletedSteps]);
 
   const saveToLocalStorage = () => {
