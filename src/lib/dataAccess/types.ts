@@ -47,5 +47,31 @@ export interface AgentFaq {
   createdAt?: Date;
 }
 
+// Blog post data interface
+export interface BlogPostData {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  body: string;
+  author: string;
+  published_at: Date;
+  tags: string[];
+  cover_image_url: string;
+  featured: boolean;
+}
+
+// Podcast episode data interface
+export interface PodcastData {
+  id: string;
+  title: string;
+  description: string;
+  audio_url: string;
+  guest_name?: string;
+  duration: string;
+  published_at: Date;
+  cover_image_url: string;
+}
+
 // Data provider types
 export type DataProviderType = 'Firebase' | 'Supabase';

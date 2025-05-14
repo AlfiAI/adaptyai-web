@@ -8,6 +8,15 @@ export interface FAQ {
 }
 
 export interface BlogFormData extends Partial<BlogPostData> {
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  body?: string;
+  author?: string;
+  published_at?: Date;
+  tags?: string[];
+  cover_image_url?: string;
+  featured?: boolean;
   key_takeaways: string[];
   faqs: FAQ[];
   coverImageFile?: File | null;
