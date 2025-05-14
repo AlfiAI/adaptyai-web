@@ -6,7 +6,14 @@ export enum DataProvider {
 }
 
 // Default data provider
-const dataProvider: DataProvider = DataProvider.FIREBASE;
+let dataProvider: DataProvider = DataProvider.FIREBASE;
+
+// Feature flag configuration
+const featureFlags: Record<string, DataProvider> = {
+  blogs: DataProvider.FIREBASE,
+  podcasts: DataProvider.FIREBASE,
+  conversations: DataProvider.FIREBASE,
+};
 
 // Function to get the current data provider
 export function getDataProvider(): DataProvider {
@@ -15,5 +22,25 @@ export function getDataProvider(): DataProvider {
 
 // Function to set the data provider
 export function setDataProvider(provider: DataProvider): void {
-  (window as any).dataProvider = provider;
+  dataProvider = provider;
+}
+
+// Update data provider globally
+export function updateDataProvider(provider: DataProvider): void {
+  setDataProvider(provider);
+  
+  // Update all feature flags
+  Object.keys(featureFlags).forEach(feature => {
+    featureFlags[feature] = provider;
+  });
+}
+
+// Function to get feature flag provider
+export function getFeatureProvider(feature: string): DataProvider {
+  return featureFlags[feature] || dataProvider;
+}
+
+// Function to update feature flag provider
+export function updateFeatureFlag(feature: string, provider: DataProvider): void {
+  featureFlags[feature] = provider;
 }

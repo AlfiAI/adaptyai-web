@@ -1,11 +1,10 @@
-
 import { FirebaseAgentRepository } from './repositories/agentRepository';
 import { SupabaseAgentRepository } from './repositories/supabase/agentRepository';
-import { FirestoreBlogRepository } from './repositories/blogRepository';
+import { FirebaseBlogRepository } from './repositories/blogRepository';
 import { SupabaseBlogRepository } from './repositories/supabase/blogSBRepository';
-import { FirestorePodcastRepository } from './repositories/podcastRepository';
+import { FirebasePodcastRepository } from './repositories/podcastRepository';
 import { SupabasePodcastRepository } from './repositories/supabase/podcastSBRepository';
-import { FirestoreConversationRepository } from './repositories/conversationRepository';
+import { FirebaseConversationRepository } from './repositories/conversationRepository';
 import { SupabaseConversationRepository } from './repositories/supabase/conversationSBRepository';
 import { DataProvider, getDataProvider } from './config';
 
@@ -35,7 +34,7 @@ export class RepositoryFactory {
   static createBlogRepository() {
     return RepositoryFactory.currentProvider === DataProvider.SUPABASE
       ? new SupabaseBlogRepository()
-      : new FirestoreBlogRepository();
+      : new FirebaseBlogRepository();
   }
 
   /**
@@ -44,7 +43,7 @@ export class RepositoryFactory {
   static createPodcastRepository() {
     return RepositoryFactory.currentProvider === DataProvider.SUPABASE
       ? new SupabasePodcastRepository()
-      : new FirestorePodcastRepository();
+      : new FirebasePodcastRepository();
   }
 
   /**
@@ -62,7 +61,7 @@ export class RepositoryFactory {
   static createConversationRepository() {
     return RepositoryFactory.currentProvider === DataProvider.SUPABASE
       ? new SupabaseConversationRepository()
-      : new FirestoreConversationRepository();
+      : new FirebaseConversationRepository();
   }
 }
 
@@ -89,7 +88,7 @@ export function getBlogRepository() {
     return new SupabaseBlogRepository();
   }
   
-  return new FirestoreBlogRepository();
+  return new FirebaseBlogRepository();
 }
 
 /**
@@ -102,7 +101,7 @@ export function getPodcastRepository() {
     return new SupabasePodcastRepository();
   }
   
-  return new FirestorePodcastRepository();
+  return new FirebasePodcastRepository();
 }
 
 /**
@@ -115,5 +114,5 @@ export function getConversationRepository() {
     return new SupabaseConversationRepository();
   }
   
-  return new FirestoreConversationRepository();
+  return new FirebaseConversationRepository();
 }

@@ -1,5 +1,6 @@
+
 import { BaseSBRepository } from './baseSBRepository';
-import { AgentData } from '../../types';
+import { AgentData, AgentInfo, AgentFeature, AgentFaq } from '../../types';
 import { DataRepository } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,7 +28,8 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
         themeColor: item.theme_color,
         agentType: item.agent_type,
         capabilities: item.capabilities,
-        slug: item.slug
+        slug: item.slug,
+        createdAt: item.created_at || new Date().toISOString()
       }));
     } catch (error) {
       return this.handleError(error, 'get all agents');
@@ -58,7 +60,8 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
         themeColor: data.theme_color,
         agentType: data.agent_type,
         capabilities: data.capabilities,
-        slug: data.slug
+        slug: data.slug,
+        createdAt: data.created_at || new Date().toISOString()
       };
     } catch (error) {
       return this.handleError(error, 'get agent by id');
@@ -89,7 +92,8 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
         themeColor: data.theme_color,
         agentType: data.agent_type,
         capabilities: data.capabilities,
-        slug: data.slug
+        slug: data.slug,
+        createdAt: data.created_at || new Date().toISOString()
       };
     } catch (error) {
       return this.handleError(error, 'get agent by slug');
