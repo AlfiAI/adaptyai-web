@@ -30,7 +30,7 @@ export const useAgentForm = ({
       shortDescription: '',
       fullDescription: '',
       agentType: 'operator',
-      capabilities: '',
+      capabilities: [], // Initialize as empty array
       avatarUrl: '',
       themeColor: '#3CDFFF',
     },
@@ -52,6 +52,7 @@ export const useAgentForm = ({
             shortDescription: agent.shortDescription,
             fullDescription: agent.fullDescription,
             agentType: agent.agentType,
+            // Convert capabilities array to comma-separated string for the form field
             capabilities: agent.capabilities.join(', '),
             avatarUrl: agent.avatarUrl || '',
             themeColor: agent.themeColor,
@@ -76,6 +77,9 @@ export const useAgentForm = ({
     try {
       setIsLoading(true);
       
+      // The capabilities are already transformed into a string array by the zod schema
+      // defined in schema.ts, so we can use the values directly
+      
       if (agentId) {
         // Update existing agent
         await agentRepo.update(agentId, {
@@ -85,8 +89,7 @@ export const useAgentForm = ({
           shortDescription: values.shortDescription,
           fullDescription: values.fullDescription,
           agentType: values.agentType,
-          // The zod schema has already transformed capabilities into a string array
-          capabilities: values.capabilities,
+          capabilities: values.capabilities, // This is already a string array thanks to zod transformation
           avatarUrl: values.avatarUrl || null,
           themeColor: values.themeColor,
         });
@@ -103,8 +106,7 @@ export const useAgentForm = ({
           shortDescription: values.shortDescription,
           fullDescription: values.fullDescription,
           agentType: values.agentType,
-          // The zod schema has already transformed capabilities into a string array
-          capabilities: values.capabilities,
+          capabilities: values.capabilities, // This is already a string array thanks to zod transformation
           avatarUrl: values.avatarUrl || null,
           themeColor: values.themeColor,
           createdAt: new Date(),
