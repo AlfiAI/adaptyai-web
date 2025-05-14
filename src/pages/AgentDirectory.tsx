@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
 import { getAgentRepository } from '@/lib/dataAccess';
-import { AgentInfo } from '@/lib/dataAccess/types';
 import { Input } from '@/components/ui/input';
 import { Loader2, Search } from 'lucide-react';
 import AgentCard from '@/components/agents/AgentCard';
@@ -21,7 +21,9 @@ const AgentDirectory = () => {
     queryKey: ['agents'],
     queryFn: async () => {
       try {
-        return await agentRepo.getAll();
+        const result = await agentRepo.getAll();
+        console.log('Agents loaded:', result);
+        return result;
       } catch (error) {
         console.error('Error fetching agents:', error);
         toast({

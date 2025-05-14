@@ -1,14 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-
-interface AgentFeature {
-  id: string;
-  title: string;
-  description: string;
-  icon?: string;
-  display_order: number;
-}
+import { AgentFeature } from '@/lib/dataAccess/types';
 
 interface AgentFeaturesProps {
   features: AgentFeature[];

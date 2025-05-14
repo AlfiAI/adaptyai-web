@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+
+import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessagesSquareIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -174,11 +175,11 @@ const AgentProfile = () => {
         </div>
         
         <AgentFeatures 
-          features={(features || []) as any} 
+          features={features || []} 
           isLoading={isLoadingFeatures} 
         />
         <AgentFAQs 
-          faqs={(faqs || []) as any} 
+          faqs={faqs || []} 
           isLoading={isLoadingFAQs} 
         />
       </Section>

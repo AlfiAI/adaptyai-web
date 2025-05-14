@@ -159,16 +159,16 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
       avatarUrl: data.avatar_url,
       themeColor: data.theme_color,
       agentType: data.agent_type,
-      capabilities: data.capabilities,
+      capabilities: data.capabilities || [],
       slug: data.slug,
-      createdAt: data.created_at || new Date().toISOString()
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at
     };
   }
 
   // Helper method from BaseSBRepository to access the Supabase table
   protected getTable() {
-    // Force cast to any to bypass TypeScript's type system completely
-    return (supabase as any).from('agents');
+    return supabase.from('agents');
   }
 
   protected tableName = 'agents';

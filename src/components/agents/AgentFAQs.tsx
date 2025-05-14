@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { AgentFaq } from '@/lib/dataAccess/types';
 import {
   Accordion,
   AccordionContent,
@@ -7,15 +8,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-interface AgentFAQ {
-  id: string;
-  question: string;
-  answer: string;
-  display_order: number;
-}
-
 interface AgentFAQsProps {
-  faqs: AgentFAQ[];
+  faqs: AgentFaq[];
   isLoading?: boolean;
 }
 

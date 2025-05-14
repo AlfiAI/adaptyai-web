@@ -1,5 +1,4 @@
 
-// Update the import to use AgentInfo instead of AgentData
 import { AgentInfo } from '@/lib/dataAccess/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -78,7 +77,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, index }) => {
             </Badge>
             
             <div className="text-xs text-muted-foreground">
-              {agent.capabilities && agent.capabilities.length} Capabilities
+              {agent.capabilities && agent.capabilities.length > 0 ? `${agent.capabilities.length} Capabilities` : 'New Agent'}
             </div>
           </CardFooter>
         </Card>
