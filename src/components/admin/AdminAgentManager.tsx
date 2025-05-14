@@ -1,57 +1,61 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AgentList } from './agent/AgentList';
-import { FeaturesList } from './agent/FeaturesList';
-import { FaqsList } from './agent/FaqsList';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import AgentForm from './agent/AgentForm';
 import { useToast } from '@/hooks/use-toast';
-import { SupabaseAgentRepository } from '@/lib/dataAccess/repositories/supabase/agentRepository';
-import { AgentInfo } from '@/lib/dataAccess/types';
+import { getAgentRepository } from '@/lib/dataAccess/factory';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AgentData } from '@/lib/dataAccess/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AgentList from './agent/AgentList';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 export const AdminAgentManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('agents');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { toast } = useToast();
-  const agentRepo = new SupabaseAgentRepository();
-
-  const handleAgentCreated = () => {
-    toast({
-      title: 'Success',
-      description: 'Agent created successfully',
-    });
-    setIsDialogOpen(false);
-    setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleAgentUpdated = () => {
-    toast({
-      title: 'Success',
-      description: 'Agent updated successfully',
-    });
-    setIsDialogOpen(false);
-    setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleEditAgent = (agent: AgentInfo) => {
-    setSelectedAgentId(agent.id);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteAgent = async (agentId: string) => {
-    try {
-      await agentRepo.delete(agentId);
+  const queryClient = useQueryClient();
+  const agentRepo = getAgentRepository();
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Fetch agents
+  const {
+    data: agents = [],
+    isLoading,
+    refetch
+  } = useQuery({
+    queryKey: ['admin', 'agents'],
+    queryFn: async () => {
+      try {
+        return await agentRepo.getAll();
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load agents',
+          variant: 'destructive',
+        });
+        return [];
+      }
+    }
+  });
+  
+  // Delete agent mutation
+  const deleteAgentMutation = useMutation({
+    mutationFn: async (agentId: string) => {
+      setIsDeleting(true);
+      try {
+        await agentRepo.delete(agentId);
+        return agentId;
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    onSuccess: (agentId) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'agents'] });
       toast({
         title: 'Success',
         description: 'Agent deleted successfully',
       });
-      setRefreshTrigger(prev => prev + 1);
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error deleting agent:', error);
       toast({
         title: 'Error',
@@ -59,67 +63,74 @@ export const AdminAgentManager: React.FC = () => {
         variant: 'destructive',
       });
     }
+  });
+  
+  const handleAddAgent = () => {
+    // Navigate to agent form or open modal
+    toast({
+      title: 'Add Agent',
+      description: 'This feature is coming soon!',
+    });
   };
-
+  
+  const handleEditAgent = (agent: AgentData) => {
+    // Navigate to agent form or open modal with agent data
+    toast({
+      title: 'Edit Agent',
+      description: `Editing ${agent.name}`,
+    });
+  };
+  
+  const handleDeleteAgent = async (agentId: string) => {
+    if (window.confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+      deleteAgentMutation.mutate(agentId);
+    }
+  };
+  
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Agent Management</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 bg-adapty-aqua text-black hover:bg-adapty-aqua/80">
-              <Plus className="h-4 w-4" /> New Agent
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedAgentId ? 'Edit Agent' : 'Create New Agent'}
-              </DialogTitle>
-              <DialogDescription>
-                {selectedAgentId 
-                  ? 'Update the agent information below.' 
-                  : 'Fill in the details to create a new AI agent.'}
-              </DialogDescription>
-            </DialogHeader>
-            <AgentForm 
-              agentId={selectedAgentId} 
-              onAgentCreated={handleAgentCreated}
-              onAgentUpdated={handleAgentUpdated}
-              onCancel={() => {
-                setIsDialogOpen(false);
-                setSelectedAgentId(null);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Tabs 
-        defaultValue="agents" 
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-3 max-w-md">
+    <div>
+      <Tabs defaultValue="agents" className="w-full">
+        <TabsList className="mb-4">
           <TabsTrigger value="agents">Agents</TabsTrigger>
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="faqs">FAQs</TabsTrigger>
         </TabsList>
-        <TabsContent value="agents" className="mt-6">
-          <AgentList 
-            onEdit={handleEditAgent} 
-            onDelete={handleDeleteAgent}
-            refreshTrigger={refreshTrigger}
+        
+        <TabsContent value="agents">
+          <AgentList
+            agents={agents}
+            isLoading={isLoading}
+            onAddAgent={handleAddAgent}
+            onEditAgent={handleEditAgent}
+            onDeleteAgent={handleDeleteAgent}
+            isDeleting={isDeleting}
           />
         </TabsContent>
-        <TabsContent value="features" className="mt-6">
-          <FeaturesList refreshTrigger={refreshTrigger} />
+        
+        <TabsContent value="features">
+          <div className="p-8 flex justify-center">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Select an agent first to manage its features.
+              </p>
+              <Button disabled>Manage Features</Button>
+            </div>
+          </div>
         </TabsContent>
-        <TabsContent value="faqs" className="mt-6">
-          <FaqsList refreshTrigger={refreshTrigger} />
+        
+        <TabsContent value="faqs">
+          <div className="p-8 flex justify-center">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Select an agent first to manage its FAQs.
+              </p>
+              <Button disabled>Manage FAQs</Button>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
   );
 };
+
+export default AdminAgentManager;

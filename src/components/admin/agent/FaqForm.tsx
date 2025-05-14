@@ -1,102 +1,54 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SupabaseAgentRepository } from '@/lib/dataAccess/repositories/supabase/agentRepository';
-import { AgentFaq } from '@/lib/dataAccess/types';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-const formSchema = z.object({
-  question: z.string().min(5, 'Question must be at least 5 characters'),
-  answer: z.string().min(10, 'Answer must be at least 10 characters'),
-  displayOrder: z.number().min(0, 'Display order must be a positive number'),
+const faqSchema = z.object({
+  question: z.string().min(1, { message: 'Question is required' }),
+  answer: z.string().min(1, { message: 'Answer is required' }),
+  display_order: z.number().int().nonnegative().default(0),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FAQFormValues = z.infer<typeof faqSchema>;
 
-interface FaqFormProps {
-  faq: AgentFaq | null;
-  agentId: string;
-  onSaved: () => void;
+interface FAQFormProps {
+  initialData?: {
+    id?: string;
+    question: string;
+    answer: string;
+    display_order: number;
+  };
+  onSubmit: (values: FAQFormValues) => void;
   onCancel: () => void;
+  isSubmitting: boolean;
 }
 
-const FaqForm: React.FC<FaqFormProps> = ({
-  faq,
-  agentId,
-  onSaved,
+export const FAQForm: React.FC<FAQFormProps> = ({
+  initialData,
+  onSubmit,
   onCancel,
+  isSubmitting,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const agentRepo = new SupabaseAgentRepository();
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FAQFormValues>({
+    resolver: zodResolver(faqSchema),
     defaultValues: {
-      question: faq?.question || '',
-      answer: faq?.answer || '',
-      displayOrder: faq?.displayOrder || 0,
+      question: initialData?.question || '',
+      answer: initialData?.answer || '',
+      display_order: initialData?.display_order || 0,
     },
   });
-
-  const onSubmit = async (values: FormValues) => {
-    if (!agentId) {
-      toast({
-        title: 'Error',
-        description: 'No agent selected',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      if (faq?.id) {
-        // Update existing FAQ
-        await agentRepo.updateFaq(faq.id, {
-          question: values.question,
-          answer: values.answer,
-          displayOrder: values.displayOrder,
-        });
-        
-        toast({
-          title: 'Success',
-          description: 'FAQ updated successfully',
-        });
-      } else {
-        // Create new FAQ
-        await agentRepo.createFaq({
-          agentId,
-          question: values.question,
-          answer: values.answer,
-          displayOrder: values.displayOrder,
-        });
-        
-        toast({
-          title: 'Success',
-          description: 'FAQ created successfully',
-        });
-      }
-      
-      onSaved();
-    } catch (error) {
-      console.error('Error saving FAQ:', error);
-      toast({
-        title: 'Error',
-        description: `Failed to ${faq ? 'update' : 'create'} FAQ`,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <Form {...form}>
@@ -108,7 +60,7 @@ const FaqForm: React.FC<FaqFormProps> = ({
             <FormItem>
               <FormLabel>Question</FormLabel>
               <FormControl>
-                <Input placeholder="E.g. How does this agent help with...?" {...field} />
+                <Input placeholder="FAQ question" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,10 +75,9 @@ const FaqForm: React.FC<FaqFormProps> = ({
               <FormLabel>Answer</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Detailed answer to the question" 
+                  placeholder="FAQ answer"
+                  className="min-h-[150px]" 
                   {...field} 
-                  className="resize-none"
-                  rows={5}
                 />
               </FormControl>
               <FormMessage />
@@ -136,16 +87,17 @@ const FaqForm: React.FC<FaqFormProps> = ({
         
         <FormField
           control={form.control}
-          name="displayOrder"
+          name="display_order"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Display Order</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  min={0}
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -153,12 +105,12 @@ const FaqForm: React.FC<FaqFormProps> = ({
           )}
         />
         
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : faq ? 'Update FAQ' : 'Add FAQ'}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : initialData?.id ? 'Update FAQ' : 'Add FAQ'}
           </Button>
         </div>
       </form>
@@ -166,4 +118,4 @@ const FaqForm: React.FC<FaqFormProps> = ({
   );
 };
 
-export default FaqForm;
+export default FAQForm;

@@ -1,139 +1,74 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SupabaseAgentRepository } from '@/lib/dataAccess/repositories/supabase/agentRepository';
-import { AgentFeature } from '@/lib/dataAccess/types';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-const formSchema = z.object({
-  title: z.string().min(2, 'Title must be at least 2 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
+const featureSchema = z.object({
+  title: z.string().min(1, { message: 'Title is required' }),
+  description: z.string().min(1, { message: 'Description is required' }),
   icon: z.string().optional(),
-  displayOrder: z.number().min(0, 'Display order must be a positive number'),
+  display_order: z.number().int().nonnegative().default(0),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FeatureFormValues = z.infer<typeof featureSchema>;
 
 interface FeatureFormProps {
-  feature: AgentFeature | null;
-  agentId: string;
-  onSaved: () => void;
+  initialData?: {
+    id?: string;
+    title: string;
+    description: string;
+    icon?: string;
+    display_order: number;
+  };
+  onSubmit: (values: FeatureFormValues) => void;
   onCancel: () => void;
+  isSubmitting: boolean;
 }
 
-const FeatureForm: React.FC<FeatureFormProps> = ({
-  feature,
-  agentId,
-  onSaved,
+export const FeatureForm: React.FC<FeatureFormProps> = ({
+  initialData,
+  onSubmit,
   onCancel,
+  isSubmitting,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const agentRepo = new SupabaseAgentRepository();
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FeatureFormValues>({
+    resolver: zodResolver(featureSchema),
     defaultValues: {
-      title: feature?.title || '',
-      description: feature?.description || '',
-      icon: feature?.icon || '',
-      displayOrder: feature?.displayOrder || 0,
+      title: initialData?.title || '',
+      description: initialData?.description || '',
+      icon: initialData?.icon || '',
+      display_order: initialData?.display_order || 0,
     },
   });
-
-  const onSubmit = async (values: FormValues) => {
-    if (!agentId) {
-      toast({
-        title: 'Error',
-        description: 'No agent selected',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      if (feature?.id) {
-        // Update existing feature
-        await agentRepo.updateFeature(feature.id, {
-          title: values.title,
-          description: values.description,
-          icon: values.icon || null,
-          displayOrder: values.displayOrder,
-        });
-        
-        toast({
-          title: 'Success',
-          description: 'Feature updated successfully',
-        });
-      } else {
-        // Create new feature
-        await agentRepo.createFeature({
-          agentId,
-          title: values.title,
-          description: values.description,
-          icon: values.icon || null,
-          displayOrder: values.displayOrder,
-        });
-        
-        toast({
-          title: 'Success',
-          description: 'Feature created successfully',
-        });
-      }
-      
-      onSaved();
-    } catch (error) {
-      console.error('Error saving feature:', error);
-      toast({
-        title: 'Error',
-        description: `Failed to ${feature ? 'update' : 'create'} feature`,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-4 gap-4">
-          <FormField
-            control={form.control}
-            name="icon"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Icon</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. ✓ or 🔍" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem className="col-span-3">
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="E.g. Regulatory Compliance" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Feature title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={form.control}
@@ -142,12 +77,7 @@ const FeatureForm: React.FC<FeatureFormProps> = ({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Detailed description of this feature" 
-                  {...field} 
-                  className="resize-none"
-                  rows={3}
-                />
+                <Textarea placeholder="Feature description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -156,16 +86,31 @@ const FeatureForm: React.FC<FeatureFormProps> = ({
         
         <FormField
           control={form.control}
-          name="displayOrder"
+          name="icon"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Icon (emoji)</FormLabel>
+              <FormControl>
+                <Input placeholder="🔍" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="display_order"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Display Order</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  min={0}
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -173,12 +118,12 @@ const FeatureForm: React.FC<FeatureFormProps> = ({
           )}
         />
         
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : feature ? 'Update Feature' : 'Add Feature'}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : initialData?.id ? 'Update Feature' : 'Add Feature'}
           </Button>
         </div>
       </form>

@@ -1,83 +1,145 @@
-
-import { collection, doc, getDoc, getDocs, query, addDoc, updateDoc, deleteDoc, orderBy } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, addDoc, updateDoc, deleteDoc, orderBy, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { BaseRepository } from './baseRepository';
-import { AgentInfo } from '../types';
+import { AgentData } from '../types';
 
 /**
- * Repository for AI agent info using Firebase
+ * Repository for agent data using Firebase
  */
-export class FirebaseAgentRepository extends BaseRepository<AgentInfo> {
+export class FirebaseAgentRepository extends BaseRepository<AgentData> {
   constructor() {
     super('Firebase');
   }
 
-  async getAll(): Promise<AgentInfo[]> {
+  async getAll(): Promise<AgentData[]> {
     try {
-      const q = query(
-        collection(db, 'agents'),
-        orderBy('createdAt', 'desc')
-      );
+      const q = query(collection(db, 'agents'));
+      const querySnapshot = await getDocs(q);
       
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        console.log("No agents found in Firestore");
-        return [];
-      }
-      
-      return snapshot.docs.map(doc => {
+      return querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
-          name: data.name || 'Unnamed Agent',
-          slug: data.slug || doc.id,
-          title: data.title || '',
-          shortDescription: data.shortDescription || data.description || '',
-          fullDescription: data.fullDescription || data.description || '',
-          agentType: data.agentType || 'operator',
-          capabilities: data.capabilities || [],
+          name: data.name,
+          title: data.title,
+          shortDescription: data.shortDescription,
+          fullDescription: data.fullDescription,
           avatarUrl: data.avatarUrl,
-          themeColor: data.themeColor || '#3CDFFF',
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate()
+          themeColor: data.themeColor || '#60a5fa',
+          agentType: data.agentType,
+          capabilities: data.capabilities || [],
+          slug: data.slug,
         };
       });
     } catch (error) {
-      return this.handleError(error, 'getAll agents');
+      return this.handleError(error, 'get all agents');
     }
   }
 
-  async getById(id: string): Promise<AgentInfo | null> {
+  async getById(id: string): Promise<AgentData | null> {
     try {
       const docRef = doc(db, 'agents', id);
       const docSnap = await getDoc(docRef);
-
+      
       if (!docSnap.exists()) {
         return null;
       }
-
+      
       const data = docSnap.data();
       return {
         id: docSnap.id,
-        name: data.name || 'Unnamed Agent',
-        slug: data.slug || docSnap.id,
-        title: data.title || '',
-        shortDescription: data.shortDescription || data.description || '',
-        fullDescription: data.fullDescription || data.description || '',
-        agentType: data.agentType || 'operator',
-        capabilities: data.capabilities || [],
+        name: data.name,
+        title: data.title,
+        shortDescription: data.shortDescription,
+        fullDescription: data.fullDescription,
         avatarUrl: data.avatarUrl,
-        themeColor: data.themeColor || '#3CDFFF',
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate()
+        themeColor: data.themeColor || '#60a5fa',
+        agentType: data.agentType,
+        capabilities: data.capabilities || [],
+        slug: data.slug,
       };
     } catch (error) {
-      return this.handleError(error, 'getById agent');
+      return this.handleError(error, 'get agent by id');
     }
   }
 
-  async create(agentData: Omit<AgentInfo, 'id'>): Promise<string> {
+  async getBySlug(slug: string): Promise<AgentData | null> {
+    try {
+      const q = query(collection(db, 'agents'), where('slug', '==', slug));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return null;
+      }
+      
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+      
+      return {
+        id: doc.id,
+        name: data.name,
+        title: data.title,
+        shortDescription: data.shortDescription,
+        fullDescription: data.fullDescription,
+        avatarUrl: data.avatarUrl,
+        themeColor: data.themeColor || '#60a5fa',
+        agentType: data.agentType,
+        capabilities: data.capabilities || [],
+        slug: data.slug,
+      };
+    } catch (error) {
+      return this.handleError(error, 'get agent by slug');
+    }
+  }
+
+  async getFeatures(agentId: string) {
+    try {
+      const q = query(
+        collection(db, 'agent_features'),
+        where('agentId', '==', agentId),
+        orderBy('displayOrder')
+      );
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          description: data.description,
+          icon: data.icon,
+          display_order: data.displayOrder
+        };
+      });
+    } catch (error) {
+      return this.handleError(error, 'get agent features');
+    }
+  }
+
+  async getFAQs(agentId: string) {
+    try {
+      const q = query(
+        collection(db, 'agent_faqs'),
+        where('agentId', '==', agentId),
+        orderBy('displayOrder')
+      );
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          question: data.question,
+          answer: data.answer,
+          display_order: data.displayOrder
+        };
+      });
+    } catch (error) {
+      return this.handleError(error, 'get agent FAQs');
+    }
+  }
+
+  async create(agentData: Omit<AgentData, 'id'>): Promise<string> {
     try {
       const docRef = await addDoc(collection(db, 'agents'), {
         name: agentData.name,
@@ -97,7 +159,7 @@ export class FirebaseAgentRepository extends BaseRepository<AgentInfo> {
     }
   }
 
-  async update(id: string, agentData: Partial<AgentInfo>): Promise<boolean> {
+  async update(id: string, agentData: Partial<AgentData>): Promise<boolean> {
     try {
       const docRef = doc(db, 'agents', id);
       const updateData = {

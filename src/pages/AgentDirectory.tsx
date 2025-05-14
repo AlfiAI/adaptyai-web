@@ -1,134 +1,119 @@
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getAgentRepository } from '@/lib/dataAccess/factory';
-import { AgentInfo } from '@/lib/dataAccess/types';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { getAgentRepository } from '@/lib/dataAccess';
+import { AgentData } from '@/lib/dataAccess/types';
+import { Input } from '@/components/ui/input';
+import { Loader2, Search } from 'lucide-react';
+import AgentCard from '@/components/agents/AgentCard';
+import AgentTypeFilter from '@/components/agents/AgentTypeFilter';
+import { useQuery } from '@tanstack/react-query';
 
 const AgentDirectory = () => {
-  const navigate = useNavigate();
-  const agentRepository = getAgentRepository();
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   
-  const { data: agents, isLoading, error } = useQuery({
+  const agentRepo = getAgentRepository();
+  
+  const { data: agents = [], isLoading } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
-      return await agentRepository.getAll();
+      try {
+        return await agentRepo.getAll();
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load agent directory",
+          variant: "destructive",
+        });
+        return [];
+      }
     }
   });
-
-  if (isLoading) {
-    return (
-      <PageContainer>
-        <Section>
-          <div className="flex justify-center items-center min-h-[60vh]">
-            <Loader2 className="h-16 w-16 animate-spin text-adapty-aqua" />
-          </div>
-        </Section>
-      </PageContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <PageContainer>
-        <Section>
-          <div className="flex flex-col justify-center items-center min-h-[60vh]">
-            <h2 className="text-2xl font-bold text-red-500">Error loading agents</h2>
-            <p className="mt-2 text-gray-400">Please try again later</p>
-          </div>
-        </Section>
-      </PageContainer>
-    );
-  }
+  
+  // Extract all unique agent types from the data
+  const agentTypes = Array.from(new Set(agents.map(agent => agent.agentType)));
+  
+  const agentTypeLabels: Record<string, string> = {
+    aviation: 'Aviation',
+    insurance: 'Insurance',
+    sustainability: 'Sustainability',
+    cybersecurity: 'Cybersecurity',
+    operator: 'Intelligence'
+  };
+  
+  const agentTypeColors: Record<string, string> = {
+    aviation: '#60a5fa', // blue
+    insurance: '#f59e0b', // amber
+    sustainability: '#10b981', // emerald
+    cybersecurity: '#ef4444', // red
+    operator: '#8b5cf6'  // violet
+  };
+  
+  // Filter agents based on search query and selected type
+  const filteredAgents = agents.filter(agent => {
+    const matchesSearch = searchQuery === '' || 
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      agent.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
+      
+    const matchesType = selectedType === null || agent.agentType === selectedType;
+    
+    return matchesSearch && matchesType;
+  });
 
   return (
     <PageContainer>
       <Section>
-        <div className="space-y-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h1 className="text-4xl font-bold mb-4 text-adapty-aqua">Meet Our AI Agents</h1>
-            <p className="text-lg text-gray-300">
-              Our specialized AI agents are designed to help you navigate complex domains with expert guidance.
-              Each agent brings unique capabilities to support your specific needs.
-            </p>
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold mb-4">Agent Directory</h1>
+          <p className="text-muted-foreground">
+            Discover and connect with our specialized AI agents designed to assist you 
+            across various domains.
+          </p>
+        </div>
+        
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <Input
+              className="pl-10"
+              placeholder="Search by name, title, or description"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           
+          <AgentTypeFilter
+            selectedType={selectedType}
+            onSelectType={setSelectedType}
+            agentTypes={agentTypes}
+            typeLabels={agentTypeLabels}
+            typeColors={agentTypeColors}
+          />
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-10 w-10 animate-spin text-adapty-aqua" />
+          </div>
+        ) : filteredAgents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agents && agents.map((agent) => (
-              <AgentCard key={agent.id} agent={agent} onClick={() => navigate(`/agents/${agent.slug}`)} />
+            {filteredAgents.map((agent, index) => (
+              <AgentCard key={agent.id} agent={agent} index={index} />
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No agents found matching your criteria.</p>
+          </div>
+        )}
       </Section>
     </PageContainer>
-  );
-};
-
-interface AgentCardProps {
-  agent: AgentInfo;
-  onClick: () => void;
-}
-
-const AgentCard = ({ agent, onClick }: AgentCardProps) => {
-  return (
-    <Card className="border border-gray-700 bg-gray-800/50 backdrop-blur-sm hover:border-adapty-aqua/50 transition-all overflow-hidden">
-      <CardHeader className="pb-2" style={{ borderBottom: `2px solid ${agent.themeColor}` }}>
-        <div className="flex items-center space-x-4">
-          <div 
-            className="h-12 w-12 rounded-full flex items-center justify-center text-2xl font-bold"
-            style={{ backgroundColor: `${agent.themeColor}20`, color: agent.themeColor }}
-          >
-            {agent.name.charAt(0)}
-          </div>
-          <div>
-            <CardTitle className="text-xl">{agent.name}</CardTitle>
-            <CardDescription>{agent.title}</CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-4">
-        <p className="text-gray-300">{agent.shortDescription}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {agent.capabilities.slice(0, 3).map((capability, index) => (
-            <span 
-              key={index}
-              className="px-2 py-1 rounded-full text-xs"
-              style={{ backgroundColor: `${agent.themeColor}30`, color: agent.themeColor }}
-            >
-              {capability}
-            </span>
-          ))}
-          {agent.capabilities.length > 3 && (
-            <span className="px-2 py-1 rounded-full text-xs bg-gray-700 text-gray-300">
-              +{agent.capabilities.length - 3} more
-            </span>
-          )}
-        </div>
-      </CardContent>
-      
-      <CardFooter>
-        <Button 
-          onClick={onClick} 
-          className="w-full group"
-          style={{ 
-            backgroundColor: `${agent.themeColor}20`, 
-            color: agent.themeColor,
-            borderColor: `${agent.themeColor}40`,
-            borderWidth: '1px'
-          }}
-          variant="outline"
-        >
-          Meet {agent.name}
-          <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-        </Button>
-      </CardFooter>
-    </Card>
   );
 };
 

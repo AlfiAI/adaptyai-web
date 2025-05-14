@@ -1,189 +1,130 @@
 
-import React, { useEffect, useState } from 'react';
-import { SupabaseAgentRepository } from '@/lib/dataAccess/repositories/supabase/agentRepository';
-import { AgentInfo } from '@/lib/dataAccess/types';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
+import { Edit, Trash, Plus, ExternalLink, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Pencil, MoreVertical, Trash2, Info } from 'lucide-react';
-import { format } from 'date-fns';
+import { AgentData } from '@/lib/dataAccess/types';
+import { Link } from 'react-router-dom';
 
 interface AgentListProps {
-  onEdit: (agent: AgentInfo) => void;
-  onDelete: (agentId: string) => void;
-  refreshTrigger: number;
+  agents: AgentData[];
+  isLoading: boolean;
+  onAddAgent: () => void;
+  onEditAgent: (agent: AgentData) => void;
+  onDeleteAgent: (agentId: string) => void;
+  isDeleting: boolean;
 }
 
-export const AgentList: React.FC<AgentListProps> = ({ 
-  onEdit, 
-  onDelete,
-  refreshTrigger, 
+export const AgentList: React.FC<AgentListProps> = ({
+  agents,
+  isLoading,
+  onAddAgent,
+  onEditAgent,
+  onDeleteAgent,
+  isDeleting,
 }) => {
-  const [agents, setAgents] = useState<AgentInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  const agentRepo = new SupabaseAgentRepository();
-
-  useEffect(() => {
-    const fetchAgents = async () => {
-      setIsLoading(true);
-      try {
-        const agentsList = await agentRepo.getAll();
-        setAgents(agentsList);
-      } catch (error) {
-        console.error('Error fetching agents:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchAgents();
-  }, [refreshTrigger]);
-
-  const handleDeleteClick = (agentId: string) => {
-    setSelectedAgentId(agentId);
-    setDeleteDialogOpen(true);
+  const agentTypeLabels: Record<string, string> = {
+    aviation: 'Aviation',
+    insurance: 'Insurance',
+    sustainability: 'Sustainability',
+    cybersecurity: 'Cybersecurity',
+    operator: 'Intelligence'
   };
-
-  const confirmDelete = () => {
-    if (selectedAgentId) {
-      onDelete(selectedAgentId);
-      setDeleteDialogOpen(false);
-      setSelectedAgentId(null);
-    }
-  };
-
-  const formatDate = (date: Date | string) => {
-    try {
-      if (typeof date === 'string') {
-        return format(new Date(date), 'MMM d, yyyy');
-      }
-      return format(date, 'MMM d, yyyy');
-    } catch (e) {
-      return 'Invalid date';
-    }
-  };
-
+  
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-adapty-aqua"></div>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-adapty-aqua" />
       </div>
     );
   }
-
+  
   return (
-    <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {agents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-400">
-                  No agents found
-                </TableCell>
-              </TableRow>
-            ) : (
-              agents.map((agent) => (
-                <TableRow key={agent.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="h-8 w-8 rounded-full flex items-center justify-center text-sm"
-                        style={{ backgroundColor: `${agent.themeColor}30`, color: agent.themeColor }}
-                      >
-                        {agent.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-medium">{agent.name}</div>
-                        <div className="text-sm text-gray-500">{agent.slug}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {agent.agentType}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(agent.createdAt)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(agent)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteClick(agent.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Agents</h2>
+        <Button onClick={onAddAgent} className="bg-adapty-aqua text-black hover:bg-adapty-aqua/80">
+          <Plus className="h-4 w-4 mr-2" /> Create Agent
+        </Button>
       </div>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this agent
-              and all associated features and FAQs.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      
+      {agents.length === 0 ? (
+        <div className="text-center py-12 border border-dashed rounded-lg">
+          <p className="text-muted-foreground mb-4">No agents have been created yet.</p>
+          <Button onClick={onAddAgent}>
+            <Plus className="h-4 w-4 mr-2" /> Create your first agent
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {agents.map((agent) => {
+            const initials = agent.name
+              .split(' ')
+              .map(part => part[0])
+              .join('')
+              .toUpperCase();
+              
+            return (
+              <Card key={agent.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <Avatar 
+                      className="h-12 w-12 border-2" 
+                      style={{ borderColor: agent.themeColor }}
+                    >
+                      {agent.avatarUrl ? (
+                        <AvatarImage src={agent.avatarUrl} alt={agent.name} />
+                      ) : (
+                        <AvatarFallback style={{ backgroundColor: agent.themeColor }}>
+                          {initials}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{agent.name}</h3>
+                        <Badge 
+                          variant="outline" 
+                          className="capitalize"
+                          style={{ borderColor: agent.themeColor, color: agent.themeColor }}
+                        >
+                          {agentTypeLabels[agent.agentType] || agent.agentType}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{agent.title}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Link to={`/agents/${agent.slug}`} target="_blank">
+                      <Button size="icon" variant="ghost">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button size="icon" variant="ghost" onClick={() => onEditAgent(agent)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost"
+                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                      onClick={() => onDeleteAgent(agent.id)}
+                      disabled={isDeleting}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
+
+export default AgentList;
