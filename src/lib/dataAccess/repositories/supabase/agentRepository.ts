@@ -1,10 +1,11 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { AgentBaseRepository } from '../baseRepository';
+import { BaseSBRepository } from './baseSBRepository';
 import { AgentInfo, AgentFeature, AgentFaq } from '../../types';
+import { AgentBaseRepository } from '../baseRepository';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Repository for AI agent information using Supabase
+ * Repository for agent data using Supabase
  */
 export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
   constructor() {
@@ -13,31 +14,26 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
 
   async getAll(): Promise<AgentInfo[]> {
     try {
-      const { data, error } = await supabase
-        .from('agents')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.map(agent => ({
-        id: agent.id,
-        name: agent.name,
-        slug: agent.slug,
-        title: agent.title,
-        shortDescription: agent.short_description,
-        fullDescription: agent.full_description,
-        agentType: agent.agent_type,
-        capabilities: agent.capabilities || [],
-        avatarUrl: agent.avatar_url,
-        themeColor: agent.theme_color,
-        createdAt: this.formatTimestamp(agent.created_at),
-        updatedAt: agent.updated_at ? this.formatTimestamp(agent.updated_at) : undefined
-      })) || [];
+      const { data, error } = await supabase.from('agents').select('*');
+      
+      if (error) throw error;
+      
+      return data.map(item => ({
+        id: item.id,
+        name: item.name,
+        title: item.title,
+        shortDescription: item.short_description,
+        fullDescription: item.full_description,
+        avatarUrl: item.avatar_url,
+        themeColor: item.theme_color,
+        agentType: item.agent_type,
+        capabilities: item.capabilities,
+        slug: item.slug,
+        createdAt: this.formatTimestamp(item.created_at),
+        updatedAt: item.updated_at ? this.formatTimestamp(item.updated_at) : undefined
+      }));
     } catch (error) {
-      return this.handleError(error, 'getAll agents');
+      return this.handleError(error, 'get all agents');
     }
   }
 
@@ -48,32 +44,30 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
         .select('*')
         .eq('id', id)
         .single();
-
+      
       if (error) {
         if (error.code === 'PGRST116') {
-          return null;
+          return null; // Record not found
         }
         throw error;
       }
-
-      if (!data) return null;
-
+      
       return {
         id: data.id,
         name: data.name,
-        slug: data.slug,
         title: data.title,
         shortDescription: data.short_description,
         fullDescription: data.full_description,
-        agentType: data.agent_type,
-        capabilities: data.capabilities || [],
         avatarUrl: data.avatar_url,
         themeColor: data.theme_color,
+        agentType: data.agent_type,
+        capabilities: data.capabilities,
+        slug: data.slug,
         createdAt: this.formatTimestamp(data.created_at),
         updatedAt: data.updated_at ? this.formatTimestamp(data.updated_at) : undefined
       };
     } catch (error) {
-      return this.handleError(error, 'getById agent');
+      return this.handleError(error, 'get agent by id');
     }
   }
 
@@ -84,32 +78,30 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
         .select('*')
         .eq('slug', slug)
         .single();
-
+      
       if (error) {
         if (error.code === 'PGRST116') {
-          return null;
+          return null; // Record not found
         }
         throw error;
       }
-
-      if (!data) return null;
-
+      
       return {
         id: data.id,
         name: data.name,
-        slug: data.slug,
         title: data.title,
         shortDescription: data.short_description,
         fullDescription: data.full_description,
-        agentType: data.agent_type,
-        capabilities: data.capabilities || [],
         avatarUrl: data.avatar_url,
         themeColor: data.theme_color,
+        agentType: data.agent_type,
+        capabilities: data.capabilities,
+        slug: data.slug,
         createdAt: this.formatTimestamp(data.created_at),
         updatedAt: data.updated_at ? this.formatTimestamp(data.updated_at) : undefined
       };
     } catch (error) {
-      return this.handleError(error, 'getBySlug agent');
+      return this.handleError(error, 'get agent by slug');
     }
   }
 
@@ -120,21 +112,19 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
         .select('*')
         .eq('agent_id', agentId)
         .order('display_order', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.map(feature => ({
+        
+      if (error) throw error;
+      
+      return data.map(feature => ({
         id: feature.id,
         agentId: feature.agent_id,
         title: feature.title,
         description: feature.description,
-        icon: feature.icon || undefined,
+        icon: feature.icon,
         displayOrder: feature.display_order
-      })) || [];
+      }));
     } catch (error) {
-      return this.handleError(error, 'getFeatures');
+      return this.handleError(error, 'get agent features');
     }
   }
 
@@ -145,21 +135,19 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
         .select('*')
         .eq('agent_id', agentId)
         .order('display_order', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.map(faq => ({
+        
+      if (error) throw error;
+      
+      return data.map(faq => ({
         id: faq.id,
         agentId: faq.agent_id,
         question: faq.question,
         answer: faq.answer,
         displayOrder: faq.display_order,
         createdAt: faq.created_at ? this.formatTimestamp(faq.created_at) : undefined
-      })) || [];
+      }));
     } catch (error) {
-      return this.handleError(error, 'getFAQs');
+      return this.handleError(error, 'get agent FAQs');
     }
   }
 
@@ -169,22 +157,25 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
         .from('agents')
         .insert({
           name: agentData.name,
-          slug: agentData.slug,
           title: agentData.title,
           short_description: agentData.shortDescription,
           full_description: agentData.fullDescription,
-          agent_type: agentData.agentType,
-          capabilities: agentData.capabilities,
           avatar_url: agentData.avatarUrl,
           theme_color: agentData.themeColor,
-          created_at: new Date().toISOString(),
-        }).select('id').single();
-
-      if (error) {
-        throw error;
+          agent_type: agentData.agentType,
+          capabilities: agentData.capabilities,
+          slug: agentData.slug
+        })
+        .select('id')
+        .single();
+      
+      if (error) throw error;
+      
+      if (!data || !data.id) {
+        throw new Error('Failed to create agent');
       }
-
-      return data?.id || '';
+      
+      return data.id;
     } catch (error) {
       return this.handleError(error, 'create agent');
     }

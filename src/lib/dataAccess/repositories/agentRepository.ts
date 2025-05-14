@@ -2,17 +2,17 @@
 import { collection, doc, getDoc, getDocs, query, addDoc, updateDoc, deleteDoc, orderBy, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AgentBaseRepository } from './baseRepository';
-import { AgentData } from '../types';
+import { AgentData, AgentInfo, AgentFeature, AgentFaq } from '../types';
 
 /**
  * Repository for agent data using Firebase
  */
-export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
+export class FirebaseAgentRepository extends AgentBaseRepository<AgentInfo> {
   constructor() {
     super('Firebase');
   }
 
-  async getAll(): Promise<AgentData[]> {
+  async getAll(): Promise<AgentInfo[]> {
     try {
       const q = query(collection(db, 'agents'));
       const querySnapshot = await getDocs(q);
@@ -30,6 +30,8 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
           agentType: data.agentType,
           capabilities: data.capabilities || [],
           slug: data.slug,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt
         };
       });
     } catch (error) {
@@ -37,7 +39,7 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
     }
   }
 
-  async getById(id: string): Promise<AgentData | null> {
+  async getById(id: string): Promise<AgentInfo | null> {
     try {
       const docRef = doc(db, 'agents', id);
       const docSnap = await getDoc(docRef);
@@ -58,13 +60,15 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
         agentType: data.agentType,
         capabilities: data.capabilities || [],
         slug: data.slug,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt
       };
     } catch (error) {
       return this.handleError(error, 'get agent by id');
     }
   }
 
-  async getBySlug(slug: string): Promise<AgentData | null> {
+  async getBySlug(slug: string): Promise<AgentInfo | null> {
     try {
       const q = query(collection(db, 'agents'), where('slug', '==', slug));
       const querySnapshot = await getDocs(q);
@@ -87,13 +91,15 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
         agentType: data.agentType,
         capabilities: data.capabilities || [],
         slug: data.slug,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt
       };
     } catch (error) {
       return this.handleError(error, 'get agent by slug');
     }
   }
 
-  async getFeatures(agentId: string) {
+  async getFeatures(agentId: string): Promise<AgentFeature[]> {
     try {
       const q = query(
         collection(db, 'agent_features'),
@@ -106,10 +112,11 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
         const data = doc.data();
         return {
           id: doc.id,
+          agentId: data.agentId,
           title: data.title,
           description: data.description,
           icon: data.icon,
-          display_order: data.displayOrder
+          displayOrder: data.displayOrder
         };
       });
     } catch (error) {
@@ -117,7 +124,7 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
     }
   }
 
-  async getFAQs(agentId: string) {
+  async getFAQs(agentId: string): Promise<AgentFaq[]> {
     try {
       const q = query(
         collection(db, 'agent_faqs'),
@@ -130,9 +137,11 @@ export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
         const data = doc.data();
         return {
           id: doc.id,
+          agentId: data.agentId,
           question: data.question,
           answer: data.answer,
-          display_order: data.displayOrder
+          displayOrder: data.displayOrder,
+          createdAt: data.createdAt || new Date().toISOString()
         };
       });
     } catch (error) {

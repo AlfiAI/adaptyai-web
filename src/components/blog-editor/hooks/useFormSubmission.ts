@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormContext } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { BlogFormData } from '../types';
 import { BlogPostData } from '@/lib/dataAccess/types';
-import { getBlogRepository } from '@/lib/dataAccess/factory';
+import { getBlogRepository } from '@/lib/dataAccess';
 import { useBlogEditorContext } from '../context/BlogEditorContext';
 import { AUTOSAVE_KEY } from '../types';
 

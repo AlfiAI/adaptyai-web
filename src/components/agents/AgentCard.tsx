@@ -1,14 +1,14 @@
 
-import React from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+// Update the import to use AgentInfo instead of AgentData
+import { AgentInfo } from '@/lib/dataAccess/types';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { AgentData } from '@/lib/dataAccess/types';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 interface AgentCardProps {
-  agent: AgentData;
+  agent: AgentInfo;
   index: number;
 }
 

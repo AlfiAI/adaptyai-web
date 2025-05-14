@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessagesSquareIcon, Loader2 } from 'lucide-react';
@@ -9,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Section from '@/components/layout/Section';
 import { getAgentRepository } from '@/lib/dataAccess';
-import { AgentData } from '@/lib/dataAccess/types';
+import { AgentInfo, AgentFeature, AgentFaq } from '@/lib/dataAccess/types';
 import AgentFeatures from '@/components/agents/AgentFeatures';
 import AgentFAQs from '@/components/agents/AgentFAQs';
 import { useQuery } from '@tanstack/react-query';
@@ -76,6 +75,25 @@ const AgentProfile = () => {
     }
   }, [agentError, navigate, toast]);
 
+  // Get initials for avatar fallback
+  const initials = agent?.name
+    ? agent.name
+        .split(' ')
+        .map(part => part[0])
+        .join('')
+        .toUpperCase()
+    : '';
+
+  const agentTypeLabels: Record<string, string> = {
+    aviation: 'Aviation',
+    insurance: 'Insurance',
+    sustainability: 'Sustainability',
+    cybersecurity: 'Cybersecurity',
+    operator: 'Intelligence'
+  };
+  
+  const typeLabel = agent?.agentType ? (agentTypeLabels[agent.agentType] || agent.agentType) : '';
+
   if (isLoadingAgent) {
     return (
       <PageContainer>
@@ -105,23 +123,6 @@ const AgentProfile = () => {
       </PageContainer>
     );
   }
-
-  // Get initials for avatar fallback
-  const initials = agent.name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .toUpperCase();
-
-  const agentTypeLabels: Record<string, string> = {
-    aviation: 'Aviation',
-    insurance: 'Insurance',
-    sustainability: 'Sustainability',
-    cybersecurity: 'Cybersecurity',
-    operator: 'Intelligence'
-  };
-  
-  const typeLabel = agentTypeLabels[agent.agentType] || agent.agentType;
 
   return (
     <PageContainer>
@@ -172,8 +173,14 @@ const AgentProfile = () => {
           </div>
         </div>
         
-        <AgentFeatures features={features || []} isLoading={isLoadingFeatures} />
-        <AgentFAQs faqs={faqs || []} isLoading={isLoadingFAQs} />
+        <AgentFeatures 
+          features={(features || []) as any} 
+          isLoading={isLoadingFeatures} 
+        />
+        <AgentFAQs 
+          faqs={(faqs || []) as any} 
+          isLoading={isLoadingFAQs} 
+        />
       </Section>
     </PageContainer>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BlogPostList } from './blog/BlogPostList';
 import { Button } from '../ui/button';
@@ -6,7 +5,7 @@ import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FirestoreBlogPost } from '@/services/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { getBlogRepository } from '@/lib/dataAccess/factory';
+import { getBlogRepository } from '@/lib/dataAccess';
 
 export const AdminBlogManager: React.FC = () => {
   const [posts, setPosts] = useState<FirestoreBlogPost[]>([]);
