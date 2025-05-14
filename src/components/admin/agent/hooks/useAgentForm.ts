@@ -52,8 +52,7 @@ export const useAgentForm = ({
             shortDescription: agent.shortDescription,
             fullDescription: agent.fullDescription,
             agentType: agent.agentType,
-            // Convert capabilities array to comma-separated string for the form field
-            capabilities: agent.capabilities.join(', '),
+            capabilities: agent.capabilities, // This should now be an array
             avatarUrl: agent.avatarUrl || '',
             themeColor: agent.themeColor,
           });
