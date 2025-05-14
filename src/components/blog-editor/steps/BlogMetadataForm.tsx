@@ -117,7 +117,7 @@ export const BlogMetadataForm: React.FC<BlogMetadataFormProps> = ({ onComplete }
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(new Date(field.value), "PPP")
                         ) : (
                           "Select a date"
                         )}
@@ -128,7 +128,7 @@ export const BlogMetadataForm: React.FC<BlogMetadataFormProps> = ({ onComplete }
                   <PopoverContent className="w-auto p-0" align="start">
                     <CalendarComponent
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ? new Date(field.value) : undefined}
                       onSelect={field.onChange}
                       initialFocus
                     />

@@ -37,4 +37,29 @@ const dataConfig: DataConfig = {
   }
 };
 
+/**
+ * Update the global data provider
+ */
+export const updateDataProvider = (provider: DataProvider): void => {
+  dataConfig.provider = provider;
+  
+  if (dataConfig.debug) {
+    console.log(`Global data provider updated to: ${provider}`);
+  }
+};
+
+/**
+ * Update a specific feature's data provider
+ */
+export const updateFeatureFlag = (
+  feature: keyof DataConfig['features'], 
+  provider: DataProvider
+): void => {
+  dataConfig.features[feature] = provider;
+  
+  if (dataConfig.debug) {
+    console.log(`Feature "${feature}" provider updated to: ${provider}`);
+  }
+};
+
 export default dataConfig;

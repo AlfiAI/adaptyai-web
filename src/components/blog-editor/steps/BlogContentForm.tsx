@@ -94,7 +94,7 @@ export const BlogContentForm: React.FC<BlogContentFormProps> = ({ onComplete }) 
       
       // Add image to editor
       if (editor) {
-        editor.chain().focus().setImage({ src: imageUrl }).run();
+        editor.chain().focus().insertContent(`<img src="${imageUrl}" alt="Blog image" />`).run();
       }
       
       toast({
