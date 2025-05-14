@@ -1,164 +1,83 @@
-
-import { FirebaseBlogRepository } from './repositories/blogRepository';
-import { FirebasePodcastRepository } from './repositories/podcastRepository';
-import { FirebaseConversationRepository } from './repositories/conversationRepository';
+import { DataProvider } from './config';
+import { FirebaseAgentRepository } from './repositories/agentRepository';
+import { SupabaseAgentRepository } from './repositories/supabase/agentRepository';
+import { FirestoreBlogRepository } from './repositories/blogRepository';
+import { FirestorePodcastRepository } from './repositories/podcastRepository';
 import { SupabaseBlogRepository } from './repositories/supabase/blogSBRepository';
 import { SupabasePodcastRepository } from './repositories/supabase/podcastSBRepository';
+import { FirestoreConversationRepository } from './repositories/conversationRepository';
 import { SupabaseConversationRepository } from './repositories/supabase/conversationSBRepository';
-import { FirebaseUserRepository } from './repositories/userRepository';
+import { FirestoreUserRepository } from './repositories/userRepository';
 import { SupabaseUserRepository } from './repositories/supabase/userSBRepository';
-import { FirebaseAgentRepository } from './repositories/agentRepository';
-import { SupabaseAgentRepository } from './repositories/supabase/agentSBRepository';
-import dataConfig, { DataProvider } from './config';
 
-import type { BlogPostData, PodcastData, Conversation, ConversationRepository, UserProfile, AgentInfo } from './types';
-import type { DataRepository } from './types';
+import dataConfig, { updateDataProvider, updateFeatureFlag } from './config';
 
 /**
- * Factory that creates repositories based on specified storage provider
+ * Get the appropriate repository for agent data
  */
-export class RepositoryFactory {
-  private static provider: DataProvider = dataConfig.provider;
-
-  /**
-   * Set the global data provider
-   */
-  static setProvider(provider: DataProvider): void {
-    this.provider = provider;
-    console.log(`Data provider set to: ${provider}`);
-  }
-
-  /**
-   * Get current global data provider
-   */
-  static getProvider(): DataProvider {
-    return this.provider;
-  }
-
-  /**
-   * Get provider for a specific feature from feature flags
-   */
-  private static getProviderForFeature(feature: keyof typeof dataConfig.features): DataProvider {
-    return dataConfig.features[feature] || this.provider;
-  }
-
-  /**
-   * Create a blog repository
-   */
-  static createBlogRepository(): DataRepository<BlogPostData> {
-    const provider = this.getProviderForFeature('blogs');
-    if (dataConfig.debug) console.log(`Creating blog repository with ${provider} provider`);
-    
-    switch (provider) {
-      case DataProvider.FIREBASE:
-        return new FirebaseBlogRepository();
-      case DataProvider.SUPABASE:
-        return new SupabaseBlogRepository();
-      default:
-        return new FirebaseBlogRepository();
-    }
-  }
-
-  /**
-   * Create a podcast repository
-   */
-  static createPodcastRepository(): DataRepository<PodcastData> {
-    const provider = this.getProviderForFeature('podcasts');
-    if (dataConfig.debug) console.log(`Creating podcast repository with ${provider} provider`);
-    
-    switch (provider) {
-      case DataProvider.FIREBASE:
-        return new FirebasePodcastRepository();
-      case DataProvider.SUPABASE:
-        return new SupabasePodcastRepository();
-      default:
-        return new FirebasePodcastRepository();
-    }
-  }
-
-  /**
-   * Create a conversation repository
-   */
-  static createConversationRepository(): ConversationRepository {
-    const provider = this.getProviderForFeature('conversations');
-    if (dataConfig.debug) console.log(`Creating conversation repository with ${provider} provider`);
-    
-    switch (provider) {
-      case DataProvider.FIREBASE:
-        return new FirebaseConversationRepository();
-      case DataProvider.SUPABASE:
-        return new SupabaseConversationRepository();
-      default:
-        return new FirebaseConversationRepository();
-    }
+export const getAgentRepository = () => {
+  const provider = dataConfig.features.agents;
+  
+  if (provider === DataProvider.FIREBASE) {
+    return new FirebaseAgentRepository();
   }
   
-  /**
-   * Create a user repository
-   */
-  static createUserRepository(): DataRepository<UserProfile> {
-    const provider = this.getProviderForFeature('users');
-    if (dataConfig.debug) console.log(`Creating user repository with ${provider} provider`);
-    
-    switch (provider) {
-      case DataProvider.FIREBASE:
-        return new FirebaseUserRepository();
-      case DataProvider.SUPABASE:
-        return new SupabaseUserRepository();
-      default:
-        return new FirebaseUserRepository();
-    }
+  return new SupabaseAgentRepository();
+};
+
+/**
+ * Get the appropriate repository for blog data
+ */
+export const getBlogRepository = () => {
+  const provider = dataConfig.features.blogs;
+
+  if (provider === DataProvider.FIREBASE) {
+    return new FirestoreBlogRepository();
   }
-  
-  /**
-   * Create an agent info repository
-   */
-  static createAgentRepository(): DataRepository<AgentInfo> {
-    const provider = this.getProviderForFeature('agents');
-    if (dataConfig.debug) console.log(`Creating agent repository with ${provider} provider`);
-    
-    switch (provider) {
-      case DataProvider.FIREBASE:
-        return new FirebaseAgentRepository();
-      case DataProvider.SUPABASE:
-        return new SupabaseAgentRepository();
-      default:
-        return new FirebaseAgentRepository();
-    }
+
+  return new SupabaseBlogRepository();
+};
+
+/**
+ * Get the appropriate repository for podcast data
+ */
+export const getPodcastRepository = () => {
+  const provider = dataConfig.features.podcasts;
+
+  if (provider === DataProvider.FIREBASE) {
+    return new FirestorePodcastRepository();
   }
-}
 
-/**
- * Helper function to get the blog repository
- */
-export const getBlogRepository = (): DataRepository<BlogPostData> => {
-  return RepositoryFactory.createBlogRepository();
+  return new SupabasePodcastRepository();
 };
 
 /**
- * Helper function to get the podcast repository
+ * Get the appropriate repository for conversation data
  */
-export const getPodcastRepository = (): DataRepository<PodcastData> => {
-  return RepositoryFactory.createPodcastRepository();
+export const getConversationRepository = () => {
+  const provider = dataConfig.features.conversations;
+
+  if (provider === DataProvider.FIREBASE) {
+    return new FirestoreConversationRepository();
+  }
+
+  return new SupabaseConversationRepository();
 };
 
 /**
- * Helper function to get the conversation repository
+ * Get the appropriate repository for user data
  */
-export const getConversationRepository = (): ConversationRepository => {
-  return RepositoryFactory.createConversationRepository();
+export const getUserRepository = () => {
+  const provider = dataConfig.features.users;
+
+  if (provider === DataProvider.FIREBASE) {
+    return new FirestoreUserRepository();
+  }
+
+  return new SupabaseUserRepository();
 };
 
-/**
- * Helper function to get the user repository
- */
-export const getUserRepository = (): DataRepository<UserProfile> => {
-  return RepositoryFactory.createUserRepository();
-};
-
-/**
- * Helper function to get the agent repository
- */
-export const getAgentRepository = (): DataRepository<AgentInfo> => {
-  return RepositoryFactory.createAgentRepository();
+export {
+  updateDataProvider,
+  updateFeatureFlag
 };
