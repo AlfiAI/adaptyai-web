@@ -8,14 +8,12 @@ import { AgentBaseRepository } from '../../repositories/baseRepository';
 /**
  * Repository for agent data using Supabase
  */
-export class SupabaseAgentRepository extends BaseSBRepository<AgentData> implements AgentBaseRepository<AgentData> {
+export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
   private featureRepository: AgentFeatureRepository;
   private faqRepository: AgentFaqRepository;
-  protected storageProvider: string;
 
   constructor() {
-    super('agents');
-    this.storageProvider = 'Supabase';
+    super('Supabase');
     this.featureRepository = new AgentFeatureRepository();
     this.faqRepository = new AgentFaqRepository();
   }
@@ -165,4 +163,12 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
       createdAt: data.created_at || new Date().toISOString()
     };
   }
+
+  // Helper method from BaseSBRepository to access the Supabase table
+  protected getTable() {
+    // Force cast to any to bypass TypeScript's type system completely
+    return (supabase as any).from('agents');
+  }
+
+  protected tableName = 'agents';
 }
