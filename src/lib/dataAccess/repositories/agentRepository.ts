@@ -1,12 +1,13 @@
+
 import { collection, doc, getDoc, getDocs, query, addDoc, updateDoc, deleteDoc, orderBy, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { BaseRepository } from './baseRepository';
+import { AgentBaseRepository } from './baseRepository';
 import { AgentData } from '../types';
 
 /**
  * Repository for agent data using Firebase
  */
-export class FirebaseAgentRepository extends BaseRepository<AgentData> {
+export class FirebaseAgentRepository extends AgentBaseRepository<AgentData> {
   constructor() {
     super('Firebase');
   }

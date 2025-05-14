@@ -11,7 +11,7 @@ export interface DataRepository<T> {
   delete(id: string): Promise<boolean>;
 }
 
-// Agent information interface
+// Agent information interface - used as AgentData throughout the application
 export interface AgentInfo {
   id: string;
   name: string;
@@ -26,6 +26,9 @@ export interface AgentInfo {
   createdAt: Date | string;
   updatedAt?: Date | string;
 }
+
+// Alias AgentData for backward compatibility
+export type AgentData = AgentInfo;
 
 // Agent feature interface
 export interface AgentFeature {

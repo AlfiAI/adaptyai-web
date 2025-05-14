@@ -1,19 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { BaseSBRepository } from './baseSBRepository';
+import { AgentBaseRepository } from '../baseRepository';
 import { AgentInfo, AgentFeature, AgentFaq } from '../../types';
 
 /**
  * Repository for AI agent information using Supabase
  */
-export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
+export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
   constructor() {
-    super('agents');
+    super('Supabase');
   }
 
   async getAll(): Promise<AgentInfo[]> {
     try {
-      const { data, error } = await this.getTable()
+      const { data, error } = await supabase
+        .from('agents')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -42,7 +43,8 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
 
   async getById(id: string): Promise<AgentInfo | null> {
     try {
-      const { data, error } = await this.getTable()
+      const { data, error } = await supabase
+        .from('agents')
         .select('*')
         .eq('id', id)
         .single();
@@ -77,7 +79,8 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
 
   async getBySlug(slug: string): Promise<AgentInfo | null> {
     try {
-      const { data, error } = await this.getTable()
+      const { data, error } = await supabase
+        .from('agents')
         .select('*')
         .eq('slug', slug)
         .single();
@@ -110,20 +113,72 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
     }
   }
 
+  async getFeatures(agentId: string): Promise<AgentFeature[]> {
+    try {
+      const { data, error } = await supabase
+        .from('agent_features')
+        .select('*')
+        .eq('agent_id', agentId)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.map(feature => ({
+        id: feature.id,
+        agentId: feature.agent_id,
+        title: feature.title,
+        description: feature.description,
+        icon: feature.icon || undefined,
+        displayOrder: feature.display_order
+      })) || [];
+    } catch (error) {
+      return this.handleError(error, 'getFeatures');
+    }
+  }
+
+  async getFAQs(agentId: string): Promise<AgentFaq[]> {
+    try {
+      const { data, error } = await supabase
+        .from('agent_faqs')
+        .select('*')
+        .eq('agent_id', agentId)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.map(faq => ({
+        id: faq.id,
+        agentId: faq.agent_id,
+        question: faq.question,
+        answer: faq.answer,
+        displayOrder: faq.display_order,
+        createdAt: faq.created_at ? this.formatTimestamp(faq.created_at) : undefined
+      })) || [];
+    } catch (error) {
+      return this.handleError(error, 'getFAQs');
+    }
+  }
+
   async create(agentData: Omit<AgentInfo, 'id'>): Promise<string> {
     try {
-      const { data, error } = await this.getTable().insert({
-        name: agentData.name,
-        slug: agentData.slug,
-        title: agentData.title,
-        short_description: agentData.shortDescription,
-        full_description: agentData.fullDescription,
-        agent_type: agentData.agentType,
-        capabilities: agentData.capabilities,
-        avatar_url: agentData.avatarUrl,
-        theme_color: agentData.themeColor,
-        created_at: new Date().toISOString(),
-      }).select('id').single();
+      const { data, error } = await supabase
+        .from('agents')
+        .insert({
+          name: agentData.name,
+          slug: agentData.slug,
+          title: agentData.title,
+          short_description: agentData.shortDescription,
+          full_description: agentData.fullDescription,
+          agent_type: agentData.agentType,
+          capabilities: agentData.capabilities,
+          avatar_url: agentData.avatarUrl,
+          theme_color: agentData.themeColor,
+          created_at: new Date().toISOString(),
+        }).select('id').single();
 
       if (error) {
         throw error;
@@ -151,7 +206,8 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
       
       updateData.updated_at = new Date().toISOString();
       
-      const { error } = await this.getTable()
+      const { error } = await supabase
+        .from('agents')
         .update(updateData)
         .eq('id', id);
 
@@ -172,7 +228,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
       await supabase.from('agent_faqs').delete().eq('agent_id', id);
       
       // Then delete the agent
-      const { error } = await this.getTable().delete().eq('id', id);
+      const { error } = await supabase.from('agents').delete().eq('id', id);
 
       if (error) {
         throw error;
@@ -184,182 +240,9 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
     }
   }
 
-  // Agent Features methods
-  async getAgentFeatures(agentId: string): Promise<AgentFeature[]> {
-    try {
-      const { data, error } = await supabase
-        .from('agent_features')
-        .select('*')
-        .eq('agent_id', agentId)
-        .order('display_order', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.map(feature => ({
-        id: feature.id,
-        agentId: feature.agent_id,
-        title: feature.title,
-        description: feature.description,
-        icon: feature.icon || undefined,
-        displayOrder: feature.display_order
-      })) || [];
-    } catch (error) {
-      return this.handleError(error, 'getAgentFeatures');
-    }
-  }
-
-  async createFeature(featureData: Omit<AgentFeature, 'id'>): Promise<string> {
-    try {
-      const { data, error } = await supabase
-        .from('agent_features')
-        .insert({
-          agent_id: featureData.agentId,
-          title: featureData.title,
-          description: featureData.description,
-          icon: featureData.icon,
-          display_order: featureData.displayOrder
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.id || '';
-    } catch (error) {
-      return this.handleError(error, 'createFeature');
-    }
-  }
-
-  async updateFeature(id: string, featureData: Partial<AgentFeature>): Promise<boolean> {
-    try {
-      const updateData: any = {};
-      
-      if (featureData.title !== undefined) updateData.title = featureData.title;
-      if (featureData.description !== undefined) updateData.description = featureData.description;
-      if (featureData.icon !== undefined) updateData.icon = featureData.icon;
-      if (featureData.displayOrder !== undefined) updateData.display_order = featureData.displayOrder;
-      
-      const { error } = await supabase
-        .from('agent_features')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
-      return true;
-    } catch (error) {
-      return this.handleError(error, 'updateFeature');
-    }
-  }
-
-  async deleteFeature(id: string): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('agent_features')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
-      return true;
-    } catch (error) {
-      return this.handleError(error, 'deleteFeature');
-    }
-  }
-
-  // Agent FAQs methods
-  async getAgentFaqs(agentId: string): Promise<AgentFaq[]> {
-    try {
-      const { data, error } = await supabase
-        .from('agent_faqs')
-        .select('*')
-        .eq('agent_id', agentId)
-        .order('display_order', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.map(faq => ({
-        id: faq.id,
-        agentId: faq.agent_id,
-        question: faq.question,
-        answer: faq.answer,
-        displayOrder: faq.display_order
-      })) || [];
-    } catch (error) {
-      return this.handleError(error, 'getAgentFaqs');
-    }
-  }
-
-  async createFaq(faqData: Omit<AgentFaq, 'id'>): Promise<string> {
-    try {
-      const { data, error } = await supabase
-        .from('agent_faqs')
-        .insert({
-          agent_id: faqData.agentId,
-          question: faqData.question,
-          answer: faqData.answer,
-          display_order: faqData.displayOrder
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.id || '';
-    } catch (error) {
-      return this.handleError(error, 'createFaq');
-    }
-  }
-
-  async updateFaq(id: string, faqData: Partial<AgentFaq>): Promise<boolean> {
-    try {
-      const updateData: any = {};
-      
-      if (faqData.question !== undefined) updateData.question = faqData.question;
-      if (faqData.answer !== undefined) updateData.answer = faqData.answer;
-      if (faqData.displayOrder !== undefined) updateData.display_order = faqData.displayOrder;
-      
-      const { error } = await supabase
-        .from('agent_faqs')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
-      return true;
-    } catch (error) {
-      return this.handleError(error, 'updateFaq');
-    }
-  }
-
-  async deleteFaq(id: string): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('agent_faqs')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
-      return true;
-    } catch (error) {
-      return this.handleError(error, 'deleteFaq');
-    }
+  // Helper method to format timestamps
+  protected formatTimestamp(timestamp: string | null): string {
+    if (!timestamp) return new Date().toISOString();
+    return new Date(timestamp).toISOString();
   }
 }
