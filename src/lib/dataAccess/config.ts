@@ -1,44 +1,40 @@
 
-/**
- * Data provider enum to specify which storage system to use
- */
 export enum DataProvider {
-  FIREBASE = 'firebase',
-  SUPABASE = 'supabase',
+  FIREBASE = 'Firebase',
+  SUPABASE = 'Supabase'
 }
 
-// Configuration for the data access layer
-const dataConfig = {
-  // Default provider - using Firebase until Supabase integration is fully developed
-  provider: DataProvider.FIREBASE,
+interface DataConfig {
+  provider: DataProvider;
+  debug: boolean;
+  features: {
+    blogs: DataProvider;
+    podcasts: DataProvider;
+    conversations: DataProvider;
+    users: DataProvider;
+    agents: DataProvider;
+  }
+}
+
+/**
+ * Central configuration for data access throughout the app.
+ * Set the default provider and feature-specific overrides here.
+ */
+const dataConfig: DataConfig = {
+  // Global default provider
+  provider: DataProvider.SUPABASE,
   
-  // Feature flags for specific functionality
+  // Enable debugging logs
+  debug: true,
+  
+  // Feature-specific provider overrides
   features: {
     blogs: DataProvider.SUPABASE,
-    podcasts: DataProvider.FIREBASE, 
-    conversations: DataProvider.FIREBASE,
-    users: DataProvider.FIREBASE,
-    agents: DataProvider.FIREBASE
-  },
-  
-  // Set to true to enable debug logging
-  debug: true
+    podcasts: DataProvider.SUPABASE,
+    conversations: DataProvider.SUPABASE,
+    users: DataProvider.SUPABASE,
+    agents: DataProvider.SUPABASE
+  }
 };
 
 export default dataConfig;
-
-// Helper functions to update configuration at runtime
-export const updateDataProvider = (provider: DataProvider): void => {
-  dataConfig.provider = provider;
-  console.log(`Global data provider updated to: ${provider}`);
-};
-
-export const updateFeatureFlag = (feature: keyof typeof dataConfig.features, provider: DataProvider): void => {
-  dataConfig.features[feature] = provider;
-  console.log(`Feature flag '${feature}' updated to: ${provider}`);
-};
-
-export const setDebugMode = (debug: boolean): void => {
-  dataConfig.debug = debug;
-  console.log(`Debug mode ${debug ? 'enabled' : 'disabled'}`);
-};

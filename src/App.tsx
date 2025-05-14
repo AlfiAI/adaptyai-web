@@ -31,6 +31,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Admin = lazy(() => import("./pages/Admin"));
+const BlogEditor = lazy(() => import("./pages/BlogEditor")); // Add new page
 const Podcast = lazy(() => import("./pages/Podcast"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -70,8 +71,13 @@ const App = () => (
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/schedule" element={<Schedule />} />
                       <Route path="/admin" element={
-                        <ProtectedRoute requiredRoles={['admin']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Admin />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/blog/new" element={
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+                          <BlogEditor />
                         </ProtectedRoute>
                       } />
                       <Route path="/podcast" element={<Podcast />} />
