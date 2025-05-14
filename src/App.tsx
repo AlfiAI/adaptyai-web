@@ -31,12 +31,15 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Admin = lazy(() => import("./pages/Admin"));
-const BlogEditor = lazy(() => import("./pages/BlogEditor")); // Add new page
+const BlogEditor = lazy(() => import("./pages/BlogEditor")); 
 const Podcast = lazy(() => import("./pages/Podcast"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
+// New Agent Routes
+const AgentDirectory = lazy(() => import("./pages/AgentDirectory"));
+const AgentProfile = lazy(() => import("./pages/AgentProfile"));
 
 // Configure Query Client with retry and caching
 const queryClient = new QueryClient({
@@ -70,6 +73,9 @@ const App = () => (
                       <Route path="/blog/:slug" element={<BlogPost />} />
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/schedule" element={<Schedule />} />
+                      {/* Agent Routes */}
+                      <Route path="/agents" element={<AgentDirectory />} />
+                      <Route path="/agents/:slug" element={<AgentProfile />} />
                       <Route path="/admin" element={
                         <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Admin />

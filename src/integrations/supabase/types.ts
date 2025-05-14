@@ -9,6 +9,121 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_faqs: {
+        Row: {
+          agent_id: string
+          answer: string
+          created_at: string | null
+          display_order: number
+          id: string
+          question: string
+        }
+        Insert: {
+          agent_id: string
+          answer: string
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          question: string
+        }
+        Update: {
+          agent_id?: string
+          answer?: string
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_faqs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_features: {
+        Row: {
+          agent_id: string
+          description: string
+          display_order: number
+          icon: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          agent_id: string
+          description: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          agent_id?: string
+          description?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_features_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          agent_type: Database["public"]["Enums"]["agent_type"]
+          avatar_url: string | null
+          capabilities: string[]
+          created_at: string | null
+          full_description: string
+          id: string
+          name: string
+          short_description: string
+          slug: string
+          theme_color: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          agent_type: Database["public"]["Enums"]["agent_type"]
+          avatar_url?: string | null
+          capabilities?: string[]
+          created_at?: string | null
+          full_description: string
+          id?: string
+          name: string
+          short_description: string
+          slug: string
+          theme_color: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          agent_type?: Database["public"]["Enums"]["agent_type"]
+          avatar_url?: string | null
+          capabilities?: string[]
+          created_at?: string | null
+          full_description?: string
+          id?: string
+          name?: string
+          short_description?: string
+          slug?: string
+          theme_color?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       podcasts: {
         Row: {
           audio_url: string
@@ -126,6 +241,12 @@ export type Database = {
       }
     }
     Enums: {
+      agent_type:
+        | "aviation"
+        | "insurance"
+        | "sustainability"
+        | "cybersecurity"
+        | "operator"
       app_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
@@ -242,6 +363,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agent_type: [
+        "aviation",
+        "insurance",
+        "sustainability",
+        "cybersecurity",
+        "operator",
+      ],
       app_role: ["admin", "editor", "viewer"],
     },
   },

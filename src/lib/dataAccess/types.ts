@@ -64,9 +64,15 @@ export interface Conversation {
 export interface AgentInfo {
   id: string;
   name: string;
+  slug: string;
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+  agentType: 'aviation' | 'insurance' | 'sustainability' | 'cybersecurity' | 'operator';
   description: string;
   capabilities: string[];
   avatarUrl?: string;
+  themeColor: string;
   createdAt: Date | string;
   updatedAt?: Date | string;
 }
