@@ -73,5 +73,42 @@ export interface PodcastData {
   cover_image_url: string;
 }
 
+// User profile interface
+export interface UserProfile {
+  id: string;
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+  createdAt: Date;
+  lastLogin?: Date;
+  roles?: string[];
+}
+
+// Conversation message interface
+export interface ConversationMessage {
+  id: string;
+  conversationId: string;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
+// Conversation interface
+export interface Conversation {
+  id: string;
+  userId: string;
+  title: string;
+  messages: ConversationMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Extended repository interface for conversations
+export interface ConversationRepository extends DataRepository<Conversation> {
+  addMessage(conversationId: string, message: Omit<ConversationMessage, 'id' | 'conversationId'>): Promise<string>;
+  getConversationsForUser(userId: string): Promise<Conversation[]>;
+}
+
 // Data provider types
 export type DataProviderType = 'Firebase' | 'Supabase';

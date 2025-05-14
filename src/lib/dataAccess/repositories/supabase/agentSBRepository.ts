@@ -44,7 +44,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
   async getAll(): Promise<AgentInfo[]> {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from('agents')
         .select('*')
         .order('created_at', { ascending: false });
         
@@ -60,7 +60,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
   async getById(id: string): Promise<AgentInfo | null> {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from('agents')
         .select('*')
         .eq('id', id)
         .single();
@@ -78,7 +78,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
   async getBySlug(slug: string): Promise<AgentInfo | null> {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from('agents')
         .select('*')
         .eq('slug', slug)
         .single();
@@ -98,7 +98,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
       const dbRecord = this.mapAgentInfoToDb(agentData);
       
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from('agents')
         .insert(dbRecord)
         .select('id')
         .single();
@@ -117,7 +117,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
       const dbRecord = this.mapAgentInfoToDb(agentData);
       
       const { error } = await supabase
-        .from(this.tableName)
+        .from('agents')
         .update(dbRecord)
         .eq('id', id);
         
@@ -133,7 +133,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentInfo> {
   async delete(id: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from(this.tableName)
+        .from('agents')
         .delete()
         .eq('id', id);
         
