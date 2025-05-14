@@ -1,4 +1,3 @@
-
 // Note: In a production environment, this key should be stored securely in environment variables
 const OPENROUTER_API_KEY = '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';
 
@@ -32,12 +31,13 @@ export const sendMessageToOpenRouter = async (
       let finalConversationId = conversationId;
       
       if (!finalConversationId) {
-        // Create new conversation
+        // Create new conversation with optional userId field
         finalConversationId = await conversationRepo.create({
           title: messages.find(m => m.role === 'user')?.content.substring(0, 50) || 'New Conversation',
           createdAt: new Date(),
           updatedAt: new Date(),
-          messages: []
+          messages: [],
+          userId: undefined // Make userId optional in the type
         });
       }
       

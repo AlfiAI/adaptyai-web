@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -10,7 +9,7 @@ import Section from '@/components/layout/Section';
 import AgentChat from '@/components/agents/AgentChat';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { getDataRepository } from '@/lib/dataAccess/factory';
+import { getAgentRepository } from '@/lib/dataAccess/factory';
 import { SupabaseAgentRepository } from '@/lib/dataAccess/repositories/supabase/agentSBRepository';
 import { AgentInfo, AgentFeature, AgentFaq } from '@/lib/dataAccess/types';
 import { toast } from '@/hooks/use-toast';
@@ -161,14 +160,16 @@ const AgentProfile = () => {
           {/* Left Column - About & Features */}
           <div className="lg:w-7/12">
             {/* About Section */}
-            <Section title="About" className="mb-12">
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-8">About</h2>
               <div className="prose prose-invert max-w-none">
                 <p className="text-lg">{agent.fullDescription}</p>
               </div>
-            </Section>
+            </div>
             
             {/* Features Section */}
-            <Section title="Capabilities" className="mb-12">
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-8">Capabilities</h2>
               {featuresLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((i) => (
@@ -235,11 +236,12 @@ const AgentProfile = () => {
                   ))}
                 </div>
               )}
-            </Section>
+            </div>
             
             {/* FAQs Section */}
             {!faqsLoading && faqs && faqs.length > 0 && (
-              <Section title="Frequently Asked Questions" className="mb-12">
+              <div className="mb-12">
+                <h2 className="text-3xl font-bold mb-8">Frequently Asked Questions</h2>
                 <Accordion type="single" collapsible className="w-full">
                   {faqs.map((faq) => (
                     <AccordionItem key={faq.id} value={faq.id}>
@@ -254,13 +256,14 @@ const AgentProfile = () => {
                     </AccordionItem>
                   ))}
                 </Accordion>
-              </Section>
+              </div>
             )}
           </div>
           
           {/* Right Column - Chat Demo */}
           <div className="lg:w-5/12">
-            <Section title="Try Me Out" className="mb-8">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold mb-8">Try Me Out</h2>
               <p className="text-gray-400 mb-6">
                 Chat with {agent.name} to experience how this AI agent can assist you with {agent.shortDescription.toLowerCase()}
               </p>
@@ -289,10 +292,11 @@ const AgentProfile = () => {
                   </p>
                 </div>
               )}
-            </Section>
+            </div>
             
             {/* CTA Section */}
-            <Section title="Learn More">
+            <div>
+              <h2 className="text-3xl font-bold mb-8">Learn More</h2>
               <div 
                 className="p-6 rounded-lg"
                 style={{ 
@@ -331,7 +335,7 @@ const AgentProfile = () => {
                   </Button>
                 </div>
               </div>
-            </Section>
+            </div>
           </div>
         </div>
       </PageContainer>

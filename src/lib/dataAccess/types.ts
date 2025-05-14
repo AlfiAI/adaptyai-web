@@ -23,8 +23,8 @@ export interface AgentInfo {
   capabilities: string[];
   avatarUrl?: string;
   themeColor: string;
-  createdAt: Date;
-  updatedAt?: Date;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
 }
 
 // Agent feature interface
@@ -44,7 +44,7 @@ export interface AgentFaq {
   question: string;
   answer: string;
   displayOrder: number;
-  createdAt?: Date;
+  createdAt?: Date | string;
 }
 
 // Blog post data interface
@@ -55,7 +55,7 @@ export interface BlogPostData {
   excerpt: string;
   body: string;
   author: string;
-  published_at: Date;
+  published_at: Date | string;
   tags: string[];
   cover_image_url: string;
   featured: boolean;
@@ -69,7 +69,7 @@ export interface PodcastData {
   audio_url: string;
   guest_name?: string;
   duration: string;
-  published_at: Date;
+  published_at: Date | string;
   cover_image_url: string;
 }
 
@@ -79,8 +79,9 @@ export interface UserProfile {
   email?: string;
   displayName?: string;
   photoURL?: string;
-  createdAt: Date;
-  lastLogin?: Date;
+  avatarUrl?: string;
+  createdAt: Date | string;
+  lastLogin?: Date | string;
   roles?: string[];
 }
 
@@ -90,18 +91,18 @@ export interface ConversationMessage {
   conversationId: string;
   content: string;
   role: 'user' | 'assistant' | 'system';
-  timestamp: Date;
+  timestamp: Date | string;
   metadata?: Record<string, any>;
 }
 
 // Conversation interface
 export interface Conversation {
   id: string;
-  userId: string;
+  userId?: string;
   title: string;
   messages: ConversationMessage[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 // Extended repository interface for conversations

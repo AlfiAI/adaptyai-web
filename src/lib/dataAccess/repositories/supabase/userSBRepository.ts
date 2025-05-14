@@ -28,7 +28,7 @@ export class SupabaseUserRepository extends BaseSBRepository<UserProfile> implem
         id: item.id,
         email: item.email || '',
         displayName: item.display_name || '',
-        role: item.role || 'viewer',
+        roles: item.roles || ['viewer'],
         createdAt: this.formatTimestamp(item.created_at),
         avatarUrl: item.avatar_url
       }));
@@ -57,7 +57,7 @@ export class SupabaseUserRepository extends BaseSBRepository<UserProfile> implem
         id: data.id,
         email: data.email || '',
         displayName: data.display_name || '',
-        role: data.role || 'viewer',
+        roles: data.roles || ['viewer'],
         createdAt: this.formatTimestamp(data.created_at),
         avatarUrl: data.avatar_url
       };
@@ -86,7 +86,7 @@ export class SupabaseUserRepository extends BaseSBRepository<UserProfile> implem
         id: data.id,
         email: data.email || '',
         displayName: data.display_name || '',
-        role: data.role || 'viewer',
+        roles: data.roles || ['viewer'],
         createdAt: this.formatTimestamp(data.created_at),
         avatarUrl: data.avatar_url
       };
@@ -101,7 +101,7 @@ export class SupabaseUserRepository extends BaseSBRepository<UserProfile> implem
         .insert({
           email: userData.email,
           display_name: userData.displayName || '',
-          role: userData.role || 'viewer',
+          roles: userData.roles || ['viewer'],
           avatar_url: userData.avatarUrl || null,
         })
         .select('id')
@@ -126,7 +126,7 @@ export class SupabaseUserRepository extends BaseSBRepository<UserProfile> implem
       
       if (userData.displayName !== undefined) updates.display_name = userData.displayName;
       if (userData.email !== undefined) updates.email = userData.email;
-      if (userData.role !== undefined) updates.role = userData.role;
+      if (userData.roles !== undefined) updates.roles = userData.roles;
       if (userData.avatarUrl !== undefined) updates.avatar_url = userData.avatarUrl;
       
       // Add updated_at timestamp

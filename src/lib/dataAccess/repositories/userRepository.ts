@@ -1,4 +1,3 @@
-
 import { collection, doc, getDoc, getDocs, query, addDoc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { BaseRepository } from './baseRepository';
@@ -28,7 +27,7 @@ export class FirebaseUserRepository extends BaseRepository<UserProfile> {
           id: doc.id,
           email: data.email || '',
           displayName: data.displayName || '',
-          role: data.role || 'viewer',
+          roles: data.roles || ['viewer'],
           createdAt: data.createdAt?.toDate() || new Date(),
           avatarUrl: data.avatarUrl
         };
@@ -52,7 +51,7 @@ export class FirebaseUserRepository extends BaseRepository<UserProfile> {
         id: docSnap.id,
         email: data.email || '',
         displayName: data.displayName || '',
-        role: data.role || 'viewer',
+        roles: data.roles || ['viewer'],
         createdAt: data.createdAt?.toDate() || new Date(),
         avatarUrl: data.avatarUrl
       };
@@ -77,7 +76,7 @@ export class FirebaseUserRepository extends BaseRepository<UserProfile> {
         id: doc.id,
         email: data.email || '',
         displayName: data.displayName || '',
-        role: data.role || 'viewer',
+        roles: data.roles || ['viewer'],
         createdAt: data.createdAt?.toDate() || new Date(),
         avatarUrl: data.avatarUrl
       };
@@ -92,7 +91,7 @@ export class FirebaseUserRepository extends BaseRepository<UserProfile> {
       const docRef = await addDoc(usersRef, {
         email: userData.email,
         displayName: userData.displayName || '',
-        role: userData.role || 'viewer',
+        roles: userData.roles || ['viewer'],
         createdAt: new Date(),
         avatarUrl: userData.avatarUrl || null,
       });
