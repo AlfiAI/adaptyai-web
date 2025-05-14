@@ -4,6 +4,7 @@ import { AgentData, AgentInfo } from '../../types';
 import { AgentFeatureRepository } from './agentFeatureRepository';
 import { AgentFaqRepository } from './agentFaqRepository';
 import { AgentBaseRepository } from '../../repositories/baseRepository';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Repository for agent data using Supabase
