@@ -13,7 +13,7 @@ export interface BlogFormData extends Partial<BlogPostData> {
   excerpt?: string;
   body?: string;
   author?: string;
-  published_at?: Date;
+  published_at?: Date | string; // Updated to accept both Date and string types
   tags?: string[];
   cover_image_url?: string;
   featured?: boolean;
