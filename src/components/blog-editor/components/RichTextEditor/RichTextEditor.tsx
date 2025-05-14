@@ -1,10 +1,9 @@
 
-import React, { useEffect } from 'react';
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
+import React from 'react';
+import { EditorContent } from '@tiptap/react';
 import { EditorToolbar } from './EditorToolbar';
+import { useRichTextEditor } from './hooks/useRichTextEditor';
+import { handleLinkAdd } from './utils/linkUtils';
 
 interface RichTextEditorProps {
   content: string;
@@ -19,51 +18,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onImageUpload,
   isImageUploading
 }) => {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Image,
-      Link.configure({
-        openOnClick: false,
-      }),
-    ],
-    content: content || '',
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onChange(html);
-    },
-  });
+  const editor = useRichTextEditor({ content, onChange });
   
-  // Initialize with any existing content
-  useEffect(() => {
-    if (content && editor && editor.isEmpty) {
-      editor.commands.setContent(content);
-    }
-  }, [editor, content]);
-
-  const handleLinkAdd = () => {
-    if (!editor) return;
-    
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
-    
-    if (url === null) return;
-    
-    if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      return;
-    }
-    
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  };
-
   return (
     <div className="border rounded-md border-white/10 overflow-hidden">
       <EditorToolbar 
         editor={editor} 
         isImageUploading={isImageUploading}
         onImageUpload={onImageUpload}
-        onLinkAdd={handleLinkAdd}
+        onLinkAdd={() => handleLinkAdd(editor)}
       />
       
       <div className="bg-black/10 min-h-[400px]">
