@@ -11,9 +11,11 @@ import { AgentBaseRepository } from '../../repositories/baseRepository';
 export class SupabaseAgentRepository extends BaseSBRepository<AgentData> implements AgentBaseRepository<AgentData> {
   private featureRepository: AgentFeatureRepository;
   private faqRepository: AgentFaqRepository;
+  protected storageProvider: string;
 
   constructor() {
     super('agents');
+    this.storageProvider = 'Supabase';
     this.featureRepository = new AgentFeatureRepository();
     this.faqRepository = new AgentFaqRepository();
   }
