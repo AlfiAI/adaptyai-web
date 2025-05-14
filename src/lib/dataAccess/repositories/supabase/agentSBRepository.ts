@@ -1,15 +1,21 @@
 
 import { BaseSBRepository } from './baseSBRepository';
-import { AgentData, AgentInfo, AgentFeature, AgentFaq } from '../../types';
-import { DataRepository } from '../../types';
-import { supabase } from '@/integrations/supabase/client';
+import { AgentData, AgentInfo } from '../../types';
+import { AgentFeatureRepository } from './agentFeatureRepository';
+import { AgentFaqRepository } from './agentFaqRepository';
+import { AgentBaseRepository } from '../../repositories/baseRepository';
 
 /**
  * Repository for agent data using Supabase
  */
-export class SupabaseAgentRepository extends BaseSBRepository<AgentData> implements DataRepository<AgentData> {
+export class SupabaseAgentRepository extends BaseSBRepository<AgentData> implements AgentBaseRepository<AgentData> {
+  private featureRepository: AgentFeatureRepository;
+  private faqRepository: AgentFaqRepository;
+
   constructor() {
     super('agents');
+    this.featureRepository = new AgentFeatureRepository();
+    this.faqRepository = new AgentFaqRepository();
   }
 
   async getAll(): Promise<AgentData[]> {
@@ -18,19 +24,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
       
       if (error) throw error;
       
-      return data.map(item => ({
-        id: item.id,
-        name: item.name,
-        title: item.title,
-        shortDescription: item.short_description,
-        fullDescription: item.full_description,
-        avatarUrl: item.avatar_url,
-        themeColor: item.theme_color,
-        agentType: item.agent_type,
-        capabilities: item.capabilities,
-        slug: item.slug,
-        createdAt: item.created_at || new Date().toISOString()
-      }));
+      return data.map(item => this.mapToAgentData(item));
     } catch (error) {
       return this.handleError(error, 'get all agents');
     }
@@ -50,19 +44,7 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
         throw error;
       }
       
-      return {
-        id: data.id,
-        name: data.name,
-        title: data.title,
-        shortDescription: data.short_description,
-        fullDescription: data.full_description,
-        avatarUrl: data.avatar_url,
-        themeColor: data.theme_color,
-        agentType: data.agent_type,
-        capabilities: data.capabilities,
-        slug: data.slug,
-        createdAt: data.created_at || new Date().toISOString()
-      };
+      return this.mapToAgentData(data);
     } catch (error) {
       return this.handleError(error, 'get agent by id');
     }
@@ -82,65 +64,18 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
         throw error;
       }
       
-      return {
-        id: data.id,
-        name: data.name,
-        title: data.title,
-        shortDescription: data.short_description,
-        fullDescription: data.full_description,
-        avatarUrl: data.avatar_url,
-        themeColor: data.theme_color,
-        agentType: data.agent_type,
-        capabilities: data.capabilities,
-        slug: data.slug,
-        createdAt: data.created_at || new Date().toISOString()
-      };
+      return this.mapToAgentData(data);
     } catch (error) {
       return this.handleError(error, 'get agent by slug');
     }
   }
 
   async getFeatures(agentId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('agent_features')
-        .select('*')
-        .eq('agent_id', agentId)
-        .order('display_order', { ascending: true });
-        
-      if (error) throw error;
-      
-      return data.map(feature => ({
-        id: feature.id,
-        title: feature.title,
-        description: feature.description,
-        icon: feature.icon,
-        display_order: feature.display_order
-      }));
-    } catch (error) {
-      return this.handleError(error, 'get agent features');
-    }
+    return this.featureRepository.getByAgentId(agentId);
   }
 
   async getFAQs(agentId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('agent_faqs')
-        .select('*')
-        .eq('agent_id', agentId)
-        .order('display_order', { ascending: true });
-        
-      if (error) throw error;
-      
-      return data.map(faq => ({
-        id: faq.id,
-        question: faq.question,
-        answer: faq.answer,
-        display_order: faq.display_order
-      }));
-    } catch (error) {
-      return this.handleError(error, 'get agent FAQs');
-    }
+    return this.faqRepository.getByAgentId(agentId);
   }
 
   async create(agentData: Omit<AgentData, 'id'>): Promise<string> {
@@ -208,5 +143,24 @@ export class SupabaseAgentRepository extends BaseSBRepository<AgentData> impleme
     } catch (error) {
       return this.handleError(error, `delete ${this.tableName}`);
     }
+  }
+
+  /**
+   * Maps Supabase table row to AgentData object
+   */
+  private mapToAgentData(data: any): AgentData {
+    return {
+      id: data.id,
+      name: data.name,
+      title: data.title,
+      shortDescription: data.short_description,
+      fullDescription: data.full_description,
+      avatarUrl: data.avatar_url,
+      themeColor: data.theme_color,
+      agentType: data.agent_type,
+      capabilities: data.capabilities,
+      slug: data.slug,
+      createdAt: data.created_at || new Date().toISOString()
+    };
   }
 }
