@@ -31,9 +31,14 @@ export class FirebaseAgentRepository extends BaseRepository<AgentInfo> {
         return {
           id: doc.id,
           name: data.name || 'Unnamed Agent',
-          description: data.description || '',
+          slug: data.slug || doc.id,
+          title: data.title || '',
+          shortDescription: data.shortDescription || data.description || '',
+          fullDescription: data.fullDescription || data.description || '',
+          agentType: data.agentType || 'operator',
           capabilities: data.capabilities || [],
           avatarUrl: data.avatarUrl,
+          themeColor: data.themeColor || '#3CDFFF',
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate()
         };
@@ -56,9 +61,14 @@ export class FirebaseAgentRepository extends BaseRepository<AgentInfo> {
       return {
         id: docSnap.id,
         name: data.name || 'Unnamed Agent',
-        description: data.description || '',
+        slug: data.slug || docSnap.id,
+        title: data.title || '',
+        shortDescription: data.shortDescription || data.description || '',
+        fullDescription: data.fullDescription || data.description || '',
+        agentType: data.agentType || 'operator',
         capabilities: data.capabilities || [],
         avatarUrl: data.avatarUrl,
+        themeColor: data.themeColor || '#3CDFFF',
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate()
       };
@@ -71,9 +81,14 @@ export class FirebaseAgentRepository extends BaseRepository<AgentInfo> {
     try {
       const docRef = await addDoc(collection(db, 'agents'), {
         name: agentData.name,
-        description: agentData.description,
+        slug: agentData.slug,
+        title: agentData.title,
+        shortDescription: agentData.shortDescription,
+        fullDescription: agentData.fullDescription,
+        agentType: agentData.agentType,
         capabilities: agentData.capabilities || [],
         avatarUrl: agentData.avatarUrl,
+        themeColor: agentData.themeColor,
         createdAt: new Date(),
       });
       return docRef.id;
