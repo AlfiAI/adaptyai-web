@@ -5,14 +5,14 @@ export enum DataProvider {
   SUPABASE = 'Supabase'
 }
 
-// Default data provider
-let dataProvider: DataProvider = DataProvider.FIREBASE;
+// Default data provider - changed from FIREBASE to SUPABASE
+let dataProvider: DataProvider = DataProvider.SUPABASE;
 
-// Feature flag configuration
+// Feature flag configuration - updated all to use Supabase by default
 const featureFlags: Record<string, DataProvider> = {
-  blogs: DataProvider.FIREBASE,
-  podcasts: DataProvider.FIREBASE,
-  conversations: DataProvider.FIREBASE,
+  blogs: DataProvider.SUPABASE,
+  podcasts: DataProvider.SUPABASE,
+  conversations: DataProvider.SUPABASE,
 };
 
 // Function to get the current data provider
