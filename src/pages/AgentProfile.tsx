@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessagesSquareIcon, Loader2 } from 'lucide-react';
@@ -12,6 +13,7 @@ import AgentFeatures from '@/components/agents/AgentFeatures';
 import AgentFAQs from '@/components/agents/AgentFAQs';
 import { useQuery } from '@tanstack/react-query';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { setupSmoothScrolling } from '@/utils/scrollUtils';
 
 const AgentProfile = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -83,6 +85,13 @@ const AgentProfile = () => {
       navigate('/agents');
     }
   }, [agentError, navigate, toast]);
+
+  // Set up smooth scrolling and clean it up when component unmounts
+  useEffect(() => {
+    const cleanup = setupSmoothScrolling();
+    // Return cleanup function to remove event listeners when component unmounts
+    return cleanup;
+  }, []);
 
   // Get initials for avatar fallback
   const initials = agent?.name
