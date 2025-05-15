@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 import BlogCard from '@/components/blog/BlogCard';
 import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
 import PageContainer from '@/components/layout/PageContainer';
