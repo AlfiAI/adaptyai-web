@@ -81,7 +81,7 @@ const LexAssistant = () => {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              <p>Ask L.E.X.</p>
+              <p>Chat with Lex - your assistant</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

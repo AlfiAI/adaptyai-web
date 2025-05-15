@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 /**
  * Repository for agent data using Supabase
  */
-export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
+export class SupabaseAgentRepository extends AgentBaseRepository<AgentInfo> {
   private featureRepository: AgentFeatureRepository;
   private faqRepository: AgentFaqRepository;
 
@@ -19,7 +19,7 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
     this.faqRepository = new AgentFaqRepository();
   }
 
-  async getAll(): Promise<AgentData[]> {
+  async getAll(): Promise<AgentInfo[]> {
     try {
       const { data, error } = await this.getTable().select('*');
       
@@ -31,7 +31,7 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
     }
   }
 
-  async getById(id: string): Promise<AgentData | null> {
+  async getById(id: string): Promise<AgentInfo | null> {
     try {
       const { data, error } = await this.getTable()
         .select('*')
@@ -51,7 +51,7 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
     }
   }
 
-  async getBySlug(slug: string): Promise<AgentData | null> {
+  async getBySlug(slug: string): Promise<AgentInfo | null> {
     try {
       const { data, error } = await this.getTable()
         .select('*')
@@ -79,7 +79,7 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
     return this.faqRepository.getByAgentId(agentId);
   }
 
-  async create(agentData: Omit<AgentData, 'id'>): Promise<string> {
+  async create(agentData: Omit<AgentInfo, 'id'>): Promise<string> {
     try {
       const { data, error } = await this.getTable()
         .insert({
@@ -108,20 +108,25 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
     }
   }
 
-  async update(id: string, agentData: Partial<AgentData>): Promise<boolean> {
+  async update(id: string, agentData: Partial<AgentInfo>): Promise<boolean> {
     try {
+      const updateData: any = {};
+      
+      if (agentData.name !== undefined) updateData.name = agentData.name;
+      if (agentData.title !== undefined) updateData.title = agentData.title;
+      if (agentData.shortDescription !== undefined) updateData.short_description = agentData.shortDescription;
+      if (agentData.fullDescription !== undefined) updateData.full_description = agentData.fullDescription;
+      if (agentData.avatarUrl !== undefined) updateData.avatar_url = agentData.avatarUrl;
+      if (agentData.themeColor !== undefined) updateData.theme_color = agentData.themeColor;
+      if (agentData.agentType !== undefined) updateData.agent_type = agentData.agentType;
+      if (agentData.capabilities !== undefined) updateData.capabilities = agentData.capabilities;
+      if (agentData.slug !== undefined) updateData.slug = agentData.slug;
+      
+      // Add updated_at timestamp
+      updateData.updated_at = new Date().toISOString();
+      
       const { error } = await this.getTable()
-        .update({
-          name: agentData.name,
-          title: agentData.title,
-          short_description: agentData.shortDescription,
-          full_description: agentData.fullDescription,
-          avatar_url: agentData.avatarUrl,
-          theme_color: agentData.themeColor,
-          agent_type: agentData.agentType,
-          capabilities: agentData.capabilities,
-          slug: agentData.slug
-        })
+        .update(updateData)
         .eq('id', id);
       
       if (error) throw error;
@@ -149,7 +154,7 @@ export class SupabaseAgentRepository extends AgentBaseRepository<AgentData> {
   /**
    * Maps Supabase table row to AgentData object
    */
-  private mapToAgentData(data: any): AgentData {
+  private mapToAgentData(data: any): AgentInfo {
     return {
       id: data.id,
       name: data.name,
