@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessagesSquareIcon, Loader2 } from 'lucide-react';
@@ -12,7 +11,7 @@ import { getAgentRepository } from '@/lib/dataAccess';
 import AgentFeatures from '@/components/agents/AgentFeatures';
 import AgentFAQs from '@/components/agents/AgentFAQs';
 import { useQuery } from '@tanstack/react-query';
-import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 const AgentProfile = () => {
   const { slug } = useParams<{ slug: string }>();

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import PageContainer from '@/components/layout/PageContainer';
@@ -9,7 +8,7 @@ import { Loader2, Search } from 'lucide-react';
 import AgentCard from '@/components/agents/AgentCard';
 import AgentTypeFilter from '@/components/agents/AgentTypeFilter';
 import { useQuery } from '@tanstack/react-query';
-import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 const AgentDirectory = () => {
   const { toast } = useToast();

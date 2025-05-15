@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -77,12 +76,12 @@ const App = () => (
                       <Route path="/agents" element={<AgentDirectory />} />
                       <Route path="/agents/:slug" element={<AgentProfile />} />
                       <Route path="/admin" element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+                        <ProtectedRoute roles={['admin', 'editor']}>
                           <Admin />
                         </ProtectedRoute>
                       } />
                       <Route path="/admin/blog/new" element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+                        <ProtectedRoute roles={['admin', 'editor']}>
                           <BlogEditor />
                         </ProtectedRoute>
                       } />

@@ -9,6 +9,8 @@ import BlogCardSkeleton from '@/components/blog/BlogCardSkeleton';
 import { getBlogRepository } from '@/lib/dataAccess';
 import DataInitializer from '@/components/blog/DataInitializer';
 import { createBlogSampleData } from '@/lib/dataAccess/repositories/supabase/createBlogSampleData';
+import { BlogPost } from '@/types/blog';
+import { BlogPostData } from '@/lib/dataAccess/types';
 
 export default function BlogList() {
   const { toast } = useToast();
@@ -16,7 +18,7 @@ export default function BlogList() {
   
   const blogRepo = getBlogRepository();
   
-  const { data: posts = [], isLoading, error, refetch } = useQuery({
+  const { data: postData = [], isLoading, error, refetch } = useQuery({
     queryKey: ['blog-posts'],
     queryFn: async () => {
       try {
@@ -32,6 +34,17 @@ export default function BlogList() {
       }
     }
   });
+  
+  // Convert BlogPostData to BlogPost
+  const posts: BlogPost[] = postData.map((post: BlogPostData) => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt,
+    date: post.published_at,
+    author: post.author,
+    category: post.tags[0] || 'Uncategorized',
+    image: post.cover_image_url
+  }));
 
   // Auto-initialize blog posts if none exist
   useEffect(() => {
